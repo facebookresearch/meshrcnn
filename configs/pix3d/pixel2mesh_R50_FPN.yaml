@@ -1,0 +1,53 @@
+_BASE_: "MESH-RCNN-FPN.yaml"
+MODEL:
+  WEIGHTS: "meshrcnn://coco_init_0719.pth" # "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: True
+  VOXEL_ON: False
+  MESH_ON: True
+  ZPRED_ON: True
+  RESNETS:
+    DEPTH: 50
+  RPN:
+    IOU_THRESHOLDS: [0.2, 0.5, 0.7]
+    IOU_LABELS: [-1, 0, -1, 1]
+    SMOOTH_L1_BETA: 0.111
+  ROI_HEADS:
+    NAME: "MeshRCNNROIHeads"
+    BATCH_SIZE_PER_IMAGE: 64
+    NUM_CLASSES: 9 # Number of foreground classes
+    IOU_THRESHOLDS: [0.2, 0.5]
+    IOU_LABELS: [-1, 0, 1]
+  ROI_BOX_HEAD:
+    SMOOTH_L1_BETA: 1.0
+  ROI_Z_HEAD:
+    NAME: "FastRCNNFCHead"
+    Z_REG_WEIGHT: 1.0
+    SMOOTH_L1_BETA: 1.0
+  ROI_MASK_HEAD:
+    NAME: "MaskRCNNConvUpsampleHead"
+    POOLER_RESOLUTION: 14
+    POOLER_SAMPLING_RATIO: 2
+    NUM_CONV: 4
+  ROI_MESH_HEAD:
+    NAME: "MeshRCNNGraphConvSubdHead"
+    POOLER_RESOLUTION: 14
+    POOLER_SAMPLING_RATIO: 2
+    NUM_STAGES: 3
+    NUM_GRAPH_CONVS: 3
+    GRAPH_CONV_DIM: 128
+    GRAPH_CONV_INIT: "normal"
+    GT_COORD_THRESH: 5.0
+    CHAMFER_LOSS_WEIGHT: 1.0
+    NORMALS_LOSS_WEIGHT: 0.1
+    EDGE_LOSS_WEIGHT: 1.0
+    ICO_SPHERE_LEVEL: 2
+DATASETS:
+  TRAIN: ("pix3d_s1_train",)
+  TEST: ("pix3d_s1_test",)
+SOLVER:
+  BASE_LR: 0.02
+  WEIGHT_DECAY: 0.0001
+  STEPS: (8000, 10000)
+  MAX_ITER: 11000
+  WARMUP_ITERS: 1000
+  WARMUP_FACTOR: 0.1
