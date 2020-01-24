@@ -1,6 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import logging
 import os
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 class Checkpoint(object):
@@ -44,7 +47,7 @@ class Checkpoint(object):
 
         self.restarts = []
         if os.path.isfile(self.with_model_path) and not overwrite:
-            print('Loading checkpoint from "%s"' % self.with_model_path)
+            logger.info('Loading checkpoint from "%s"' % self.with_model_path)
             self.from_dict(torch.load(self.with_model_path))
             self.restarts.append(self.t)
 
@@ -86,7 +89,7 @@ class Checkpoint(object):
             raise ValueError("Cannot determine whether current state is best")
 
         if best:
-            print('Storing new best state for "%s"' % name)
+            logger.info('Storing new best state for "%s"' % name)
             self.best_states[name] = state
             self.best_states_ts[name] = state
 
@@ -102,10 +105,10 @@ class Checkpoint(object):
             setattr(self, k, d[k])
 
     def save(self):
-        print('Saving checkpoint (with model) to "%s"' % self.with_model_path)
+        logger.info('Saving checkpoint (with model) to "%s"' % self.with_model_path)
         torch.save(self.to_dict(include_states=True), self.with_model_path)
 
-        print('Saving checkpoint (without model) to "%s"' % self.no_model_path)
+        logger.info('Saving checkpoint (without model) to "%s"' % self.no_model_path)
         torch.save(self.to_dict(include_states=False), self.no_model_path)
 
 

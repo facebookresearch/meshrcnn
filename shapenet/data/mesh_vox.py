@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import json
+import logging
 import os
 import torch
 from pytorch3d.ops import sample_points_from_meshes
@@ -10,6 +11,8 @@ import torchvision.transforms as T
 from PIL import Image
 from shapenet.data.utils import imagenet_preprocess
 from shapenet.utils.coords import SHAPENET_MAX_ZMAX, SHAPENET_MIN_ZMIN, project_verts
+
+logger = logging.getLogger(__name__)
 
 
 class MeshVoxDataset(Dataset):
@@ -50,11 +53,11 @@ class MeshVoxDataset(Dataset):
         with open(summary_json, "r") as f:
             summary = json.load(f)
             for sid in summary:
-                print("Starting synset %s" % sid)
+                logger.info("Starting synset %s" % sid)
                 allowed_mids = None
                 if split is not None:
                     if sid not in split:
-                        print("Skipping synset %s" % sid)
+                        logger.info("Skipping synset %s" % sid)
                         continue
                     elif isinstance(split[sid], list):
                         allowed_mids = set(split[sid])

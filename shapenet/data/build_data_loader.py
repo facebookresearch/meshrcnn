@@ -1,11 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import json
+import logging
 import torch
 from detectron2.utils import comm as comm
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Subset
 from torch.utils.data.distributed import DistributedSampler
 
 from .mesh_vox import MeshVoxDataset
+
+logger = logging.getLogger(__name__)
 
 
 def _identity(x):
@@ -43,7 +46,7 @@ def build_data_loader(
     assert batch_size % num_gpus == 0, "num_gpus must divide batch size"
     batch_size //= num_gpus
 
-    print('Building dataset for split "%s"' % split_name)
+    logger.info('Building dataset for split "%s"' % split_name)
     if dataset == "MeshVox":
         dset = MeshVoxDataset(
             cfg.DATASETS.DATA_DIR,

@@ -1,10 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch3d.loss import chamfer_distance, mesh_edge_loss
 from pytorch3d.ops import sample_points_from_meshes
 from pytorch3d.structures import Meshes
+
+logger = logging.getLogger(__name__)
 
 
 class MeshLoss(nn.Module):
@@ -100,7 +103,7 @@ class MeshLoss(nn.Module):
             # Sampling failed, so return None
             total_loss = None
             which = "predictions" if points_pred is None else "GT"
-            print("WARNING: Sampling %s failed" % (which))
+            logger.info("WARNING: Sampling %s failed" % (which))
             return total_loss, losses
 
         losses = {}

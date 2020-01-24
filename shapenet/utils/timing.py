@@ -1,10 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """ Utilities for timing GPU operations in PyTorch. """
-
+import logging
 import numpy as np
 import time
 from collections import defaultdict
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 def time_backward(f, x, key=None, timing=None):
@@ -116,7 +118,7 @@ class Timer(object):
                 )
             else:
                 msg = "[timeit]%s%.4f" % (space, duration_ms)
-            print(msg)
+            logger.info(msg)
             self._adjust_indent(-1)
 
     def tick(self):

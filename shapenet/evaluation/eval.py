@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import logging
 import numpy as np
 from collections import defaultdict
 import detectron2.utils.comm as comm
@@ -9,6 +10,8 @@ from meshrcnn.utils.metrics import compare_meshes
 
 import shapenet.utils.vis as vis_utils
 from shapenet.data.utils import image_to_numpy, imagenet_deprocess
+
+logger = logging.getLogger(__name__)
 
 
 @torch.no_grad()
@@ -73,7 +76,7 @@ def evaluate_test(model, data_loader, vis_preds=False):
                     )
 
             num_batch_evaluated += 1
-            print("Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader)))
+            logger.info("Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader)))
 
     vis_utils.print_instances_class_histogram(
         num_instances,
@@ -142,7 +145,7 @@ def evaluate_test_p2m(model, data_loader):
                 f1_2e_4[sid] += cur_metrics["F1@%f" % 0.014142][i].item()
 
             num_batch_evaluated += 1
-            print("Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader)))
+            logger.info("Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader)))
 
     vis_utils.print_instances_class_histogram_p2m(
         num_instances,
@@ -199,7 +202,7 @@ def evaluate_split(
                     predictions[faces_key].append(faces.cpu().numpy())
 
         num_predictions += len(meshes_gt)
-        print("Evaluated %d predictions so far" % num_predictions)
+        logger.info("Evaluated %d predictions so far" % num_predictions)
         if 0 < max_predictions <= num_predictions:
             break
 

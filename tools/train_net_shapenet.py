@@ -53,7 +53,7 @@ def main_worker_eval(worker_id, args):
     # load checkpoing and build model
     if cfg.MODEL.CHECKPOINT == "":
         raise ValueError("Invalid checkpoing provided")
-    logger.info("Loading model from checkpoint")
+    logger.info("Loading model from checkpoint: %s" % (cfg.MODEL.CHECKPOINT))
     cp = torch.load(PathManager.get_local_path(cfg.MODEL.CHECKPOINT))
     state_dict = clean_state_dict(cp["best_states"]["model"])
     model = build_model(cfg)

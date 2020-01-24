@@ -8,9 +8,9 @@ ICCV 2019
 
 ## Installation Requirements
 - [Detectron2][d2]
-- [Pytorch3D][py3d]
+- [PyTorch3D][py3d]
 
-The implementation of Mesh R-CNN is based on [detectron2][d2] and [pytorch3d][py3d].
+The implementation of Mesh R-CNN is based on [Detectron2][d2] and [PyTorch3D][py3d].
 You will first need to install those in order to be able to run Mesh R-CNN.
 
 To install
@@ -44,7 +44,7 @@ See [INSTRUCTIONS_SHAPENET.md](INSTRUCTIONS_SHAPENET.md) for more instructions.
 ## License
 The Mesh R-CNN codebase is released under [BSD-3-Clause License](LICENSE)
 
-[1]: https://arxiv.org/abs/1912.08804
+[1]: https://arxiv.org/abs/1906.02739
 [gg]: https://github.com/gkioxari
 [jj]: https://github.com/jcjohnson
 [d2]: https://github.com/facebookresearch/detectron2

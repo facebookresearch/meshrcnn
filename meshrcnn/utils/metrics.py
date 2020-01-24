@@ -1,8 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import logging
 from collections import defaultdict
 import torch
 import torch.nn.functional as F
 from pytorch3d.ops import nn_points_idx, sample_points_from_meshes
+
+logger = logging.getLogger(__name__)
 
 
 @torch.no_grad()
@@ -64,10 +67,10 @@ def compare_meshes(
     pred_points, pred_normals = _sample_meshes(pred_meshes, num_samples_pred)
     gt_points, gt_normals = _sample_meshes(gt_meshes, num_samples_gt)
     if pred_points is None:
-        print("WARNING: Sampling predictions failed during eval")
+        logger.info("WARNING: Sampling predictions failed during eval")
         return None
     elif gt_points is None:
-        print("WARNING: Sampling GT failed during eval")
+        logger.info("WARNING: Sampling GT failed during eval")
         return None
 
     if len(gt_meshes) == 1:

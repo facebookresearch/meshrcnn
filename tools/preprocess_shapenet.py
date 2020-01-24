@@ -31,6 +31,28 @@ def int_list(s):
     return [int(x) for x in s.split(",")]
 
 
+def validcheck(summary, splits):
+    valid = True
+    for split_set in splits.keys():
+        for sid in splits[split_set].keys():
+            for mid in splits[split_set][sid].keys():
+                if sid not in summary.keys():
+                    logger.info("missing %s" % (sid))
+                    valid = False
+                else:
+                    if mid not in summary[sid].keys():
+                        logger.info("missing %s - %s" % (sid, mid))
+                        valid = False
+                    else:
+                        if summary[sid][mid] < len(splits[split_set][sid][mid]):
+                            logger.info(
+                                "mismatch of images for %s - %s: %d vs %d"
+                                % (sid, mid, len(splits[split_set][sid][mid]), summary[sid][mid])
+                            )
+                            valid = False
+    return valid
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -47,6 +69,11 @@ def parse_args():
         "--shapenet_binvox_dir",
         default="./datasets/shapenet/ShapeNetCore.v1.binvox",
         help="Path to the Shapenet Core V1 binvox dir",
+    )
+    parser.add_argument(
+        "--splits_file",
+        default="./datasets/shapenet/pix2mesh_splits_val05.json",
+        help="Path to the splits file. This is used for final checking",
     )
     parser.add_argument(
         "--output_dir", default="./datasets/shapenet/ShapeNetV1processed", help="Output directory"
@@ -110,9 +137,17 @@ def main(args):
                 sid, mid, num_imgs = out
                 summary[sid][mid] = num_imgs
 
+    # check that the pre processing completed successfully
+    logger.info("Checking validity...")
+    splits = json.load(open(args.splits_file, "r"))
+    if not validcheck(summary, splits):
+        raise ValueError("Pre processing identified missing data points")
+
     summary_json = os.path.join(args.output_dir, "summary.json")
     with open(summary_json, "w") as f:
         json.dump(summary, f)
+
+    logger.info("Pre processing succeeded!")
 
 
 def handle_model(args, sid, mid, i, N):
@@ -281,4 +316,6 @@ if __name__ == "__main__":
     # Zips the output dir. This is needed if the user wants to copy
     # the data over to a cluster or machine for faster io
     if args.zip_output:
+        logger.info("Archiving output...")
         shutil.make_archive(args.output_dir, "zip", base_dir=args.output_dir)
+    logger.info("Done.")
