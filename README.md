@@ -7,7 +7,7 @@ Code for the paper
 ICCV 2019
 
 <div align="center">
-  <img src="https://gkioxari.github.io/teasers/meshrcnn_blog_video.gif"/>
+  <img src="https://gkioxari.github.io/teasers/meshrcnn_blog_video.gif" width="550px" />
 </div>
 
 ## Installation Requirements
