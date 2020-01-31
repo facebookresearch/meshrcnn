@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import argparse
+import logging
 import multiprocessing as mp
 import numpy as np
 import os
@@ -22,6 +23,8 @@ from meshrcnn.config import get_meshrcnn_cfg_defaults
 from meshrcnn.evaluation import transform_meshes_to_camera_coord_system
 
 import cv2
+
+logger = logging.getLogger("demo")
 
 
 class VisualizationDemo(object):
@@ -208,7 +211,7 @@ def get_parser():
 if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)
     args = get_parser().parse_args()
-    logger = setup_logger()
+    logger = setup_logger(name="demo")
     logger.info("Arguments: " + str(args))
 
     cfg = setup_cfg(args)
@@ -222,3 +225,4 @@ if __name__ == "__main__":
     # use PIL, to be consistent with evaluation
     img = read_image(args.input, format="BGR")
     predictions = demo.run_on_image(img, focal_length=args.focal_length)
+    logger.info("Predictions saved in %s" % (os.path.join(args.output, im_name)))

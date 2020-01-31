@@ -6,6 +6,10 @@ Code for the paper
 [Georgia Gkioxari][gg], Jitendra Malik, [Justin Johnson][jj]  
 ICCV 2019
 
+<div align="center">
+  <img src="https://gkioxari.github.io/teasers/meshrcnn_blog_video.gif"/>
+</div>
+
 ## Installation Requirements
 - [Detectron2][d2]
 - [PyTorch3D][py3d]
