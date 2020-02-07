@@ -162,7 +162,9 @@ def handle_model(args, sid, mid, i, N):
     if not os.path.isfile(obj_path):
         logger.info("WARNING: Skipping %s/%s, no .obj" % (sid, mid))
         return None
-    mesh = load_obj(obj_path)
+    # Some ShapeNet textures are corrupt. Since we don't need them,
+    # avoid loading textures altogether.
+    mesh = load_obj(obj_path, load_textures=False)
     verts = mesh[0]
     faces = mesh[1].verts_idx
 
