@@ -10,7 +10,7 @@ from pytorch3d.ops import cubify
 from pytorch3d.structures import Meshes
 from pytorch3d.utils import ico_sphere
 
-from meshrcnn.modeling.roi_heads.mask_head import mask_rcnn_inference, mask_rcnn_loss
+from meshrcnn.modeling.roi_heads.mask_head import mask_rcnn_loss
 from meshrcnn.modeling.roi_heads.mesh_head import (
     build_mesh_head,
     mesh_rcnn_inference,
@@ -254,7 +254,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
             proposals, _ = select_foreground_proposals(instances, self.num_classes)
             proposal_boxes = [x.proposal_boxes for x in proposals]
             mask_features = self.mask_pooler(features, proposal_boxes)
-            mask_logits = self.mask_head(mask_features)
+            mask_logits = self.mask_head.layers(mask_features)
             loss_mask, target_masks = mask_rcnn_loss(mask_logits, proposals)
             if self._vis:
                 self._misc["target_masks"] = target_masks
@@ -263,9 +263,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         else:
             pred_boxes = [x.pred_boxes for x in instances]
             mask_features = self.mask_pooler(features, pred_boxes)
-            mask_logits = self.mask_head(mask_features)
-            mask_rcnn_inference(mask_logits, instances)
-            return instances
+            return self.mask_head(mask_features)
 
     def _forward_shape(self, features, instances):
         """
