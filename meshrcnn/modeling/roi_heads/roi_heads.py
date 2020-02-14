@@ -263,7 +263,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         else:
             pred_boxes = [x.pred_boxes for x in instances]
             mask_features = self.mask_pooler(features, pred_boxes)
-            return self.mask_head(mask_features)
+            return self.mask_head(mask_features, instances)
 
     def _forward_shape(self, features, instances):
         """
