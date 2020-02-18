@@ -33,22 +33,22 @@ class MeshRCNNROIHeads(StandardROIHeads):
 
     def __init__(self, cfg, input_shape: Dict[str, ShapeSpec]):
         super().__init__(cfg, input_shape)
-        self._init_z_head(cfg)
-        self._init_voxel_head(cfg)
-        self._init_mesh_head(cfg)
+        self._init_z_head(cfg, input_shape)
+        self._init_voxel_head(cfg, input_shape)
+        self._init_mesh_head(cfg, input_shape)
         # If MODEL.VIS_MINIBATCH is True we store minibatch targets
         # for visualization purposes
         self._vis = cfg.MODEL.VIS_MINIBATCH
         self._misc = {}
         self._vis_dir = cfg.OUTPUT_DIR
 
-    def _init_z_head(self, cfg):
+    def _init_z_head(self, cfg, input_shape):
         # fmt: off
         self.zpred_on = cfg.MODEL.ZPRED_ON
         if not self.zpred_on:
             return
         z_pooler_resolution = cfg.MODEL.ROI_Z_HEAD.POOLER_RESOLUTION
-        z_pooler_scales     = tuple(1.0 / self.feature_strides[k] for k in self.in_features)
+        z_pooler_scales     = tuple(1.0 / input_shape[k].stride for k in self.in_features)
         z_sampling_ratio    = cfg.MODEL.ROI_Z_HEAD.POOLER_SAMPLING_RATIO
         z_pooler_type       = cfg.MODEL.ROI_Z_HEAD.POOLER_TYPE
         # fmt: on
@@ -56,7 +56,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         self.z_loss_weight = cfg.MODEL.ROI_Z_HEAD.Z_REG_WEIGHT
         self.z_smooth_l1_beta = cfg.MODEL.ROI_Z_HEAD.SMOOTH_L1_BETA
 
-        in_channels = [self.feature_channels[f] for f in self.in_features][0]
+        in_channels = [input_shape[f].channels for f in self.in_features][0]
 
         self.z_pooler = ROIPooler(
             output_size=z_pooler_resolution,
@@ -69,13 +69,13 @@ class MeshRCNNROIHeads(StandardROIHeads):
         )
         self.z_head = build_z_head(cfg, shape)
 
-    def _init_voxel_head(self, cfg):
+    def _init_voxel_head(self, cfg, input_shape):
         # fmt: off
         self.voxel_on       = cfg.MODEL.VOXEL_ON
         if not self.voxel_on:
             return
         voxel_pooler_resolution = cfg.MODEL.ROI_VOXEL_HEAD.POOLER_RESOLUTION
-        voxel_pooler_scales     = tuple(1.0 / self.feature_strides[k] for k in self.in_features)
+        voxel_pooler_scales     = tuple(1.0 / input_shape[k].stride for k in self.in_features)
         voxel_sampling_ratio    = cfg.MODEL.ROI_VOXEL_HEAD.POOLER_SAMPLING_RATIO
         voxel_pooler_type       = cfg.MODEL.ROI_VOXEL_HEAD.POOLER_TYPE
         # fmt: on
@@ -84,7 +84,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         self.cls_agnostic_voxel = cfg.MODEL.ROI_VOXEL_HEAD.CLS_AGNOSTIC_VOXEL
         self.cubify_thresh = cfg.MODEL.ROI_VOXEL_HEAD.CUBIFY_THRESH
 
-        in_channels = [self.feature_channels[f] for f in self.in_features][0]
+        in_channels = [input_shape[f].channels for f in self.in_features][0]
 
         self.voxel_pooler = ROIPooler(
             output_size=voxel_pooler_resolution,
@@ -97,13 +97,13 @@ class MeshRCNNROIHeads(StandardROIHeads):
         )
         self.voxel_head = build_voxel_head(cfg, shape)
 
-    def _init_mesh_head(self, cfg):
+    def _init_mesh_head(self, cfg, input_shape):
         # fmt: off
         self.mesh_on        = cfg.MODEL.MESH_ON
         if not self.mesh_on:
             return
         mesh_pooler_resolution  = cfg.MODEL.ROI_MESH_HEAD.POOLER_RESOLUTION
-        mesh_pooler_scales      = tuple(1.0 / self.feature_strides[k] for k in self.in_features)
+        mesh_pooler_scales      = tuple(1.0 / input_shape[k].stride for k in self.in_features)
         mesh_sampling_ratio     = cfg.MODEL.ROI_MESH_HEAD.POOLER_SAMPLING_RATIO
         mesh_pooler_type        = cfg.MODEL.ROI_MESH_HEAD.POOLER_TYPE
         # fmt: on
@@ -116,7 +116,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         self.gt_coord_thresh = cfg.MODEL.ROI_MESH_HEAD.GT_COORD_THRESH
         self.ico_sphere_level = cfg.MODEL.ROI_MESH_HEAD.ICO_SPHERE_LEVEL
 
-        in_channels = [self.feature_channels[f] for f in self.in_features][0]
+        in_channels = [input_shape[f].channels for f in self.in_features][0]
 
         self.mesh_pooler = ROIPooler(
             output_size=mesh_pooler_resolution,
