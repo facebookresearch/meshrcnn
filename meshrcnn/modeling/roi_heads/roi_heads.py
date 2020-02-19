@@ -143,39 +143,23 @@ class MeshRCNNROIHeads(StandardROIHeads):
             proposals = self.label_and_sample_proposals(proposals, targets)
         del targets
 
-        features_list = [features[f] for f in self.in_features]
-
-        box_features = self.box_pooler(features_list, [x.proposal_boxes for x in proposals])
-        box_features = self.box_head(box_features)
-        pred_class_logits, pred_proposal_deltas = self.box_predictor(box_features)
-        del box_features
-
-        outputs = FastRCNNOutputs(
-            self.box2box_transform,
-            pred_class_logits,
-            pred_proposal_deltas,
-            proposals,
-            self.smooth_l1_beta,
-        )
         if self._vis:
             self._misc["proposals"] = proposals
 
         if self.training:
-            losses = outputs.losses()
+            losses = self._forward_box(features, proposals)
             # During training the proposals used by the box head are
             # used by the z, mask, voxel & mesh head.
-            losses.update(self._forward_z(features_list, proposals))
-            losses.update(self._forward_mask(features_list, proposals))
-            losses.update(self._forward_shape(features_list, proposals))
+            losses.update(self._forward_z(features, proposals))
+            losses.update(self._forward_mask(features, proposals))
+            losses.update(self._forward_shape(features, proposals))
             # print minibatch examples
             if self._vis:
                 vis_utils.visualize_minibatch(self._misc["images"], self._misc, self._vis_dir, True)
 
             return [], losses
         else:
-            pred_instances, _ = outputs.inference(
-                self.test_score_thresh, self.test_nms_thresh, self.test_detections_per_img
-            )
+            pred_instances = self._forward_box(features, proposals)
             # During inference cascaded prediction is used: the mask and keypoints heads are only
             # applied to the top scoring box detections.
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
@@ -196,7 +180,6 @@ class MeshRCNNROIHeads(StandardROIHeads):
         """
         assert not self.training
         assert instances[0].has("pred_boxes") and instances[0].has("pred_classes")
-        features = [features[f] for f in self.in_features]
 
         instances = self._forward_z(features, instances)
         instances = self._forward_mask(features, instances)
@@ -209,6 +192,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         """
         if not self.zpred_on:
             return {} if self.training else instances
+        features = [features[f] for f in self.in_features]
 
         if self.training:
             # The loss is only defined on positive proposals.
@@ -237,7 +221,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         Forward logic of the mask prediction branch.
 
         Args:
-            features (list[Tensor]): #level input features for mask prediction
+            features (dict[str,Tensor]): mapping from names to backbone features
             instances (list[Instances]): the per-image instances to train/predict masks.
                 In training, they can be the proposals.
                 In inference, they can be the predicted boxes.
@@ -248,6 +232,8 @@ class MeshRCNNROIHeads(StandardROIHeads):
         """
         if not self.mask_on:
             return {} if self.training else instances
+
+        features = [features[f] for f in self.in_features]
 
         if self.training:
             # The loss is only defined on positive proposals.
@@ -281,6 +267,7 @@ class MeshRCNNROIHeads(StandardROIHeads):
         if not self.voxel_on and not self.mesh_on:
             return {} if self.training else instances
 
+        features = [features[f] for f in self.in_features]
         if self.training:
             # The loss is only defined on positive proposals.
             proposals, _ = select_foreground_proposals(instances, self.num_classes)
