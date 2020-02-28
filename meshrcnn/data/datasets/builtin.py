@@ -40,7 +40,9 @@ SPLITS = {
 
 
 def register_pix3d(dataset_name, json_file, image_root, root="datasets"):
-    DatasetCatalog.register(key, lambda: load_pix3d_json(json_file, image_root, key))
+    DatasetCatalog.register(
+        dataset_name, lambda: load_pix3d_json(json_file, image_root, dataset_name)
+    )
     things_ids = [k["id"] for k in get_pix3d_metadata()]
     thing_dataset_id_to_contiguous_id = {k: i for i, k in enumerate(things_ids)}
     thing_classes = [k["name"] for k in get_pix3d_metadata()]
@@ -57,5 +59,5 @@ def register_pix3d(dataset_name, json_file, image_root, root="datasets"):
     )
 
 
-for key, (image_root, json_file) in SPLITS.items():
-    register_pix3d(key, json_file, image_root)
+for key, (data_root, anno_file) in SPLITS.items():
+    register_pix3d(key, anno_file, data_root)

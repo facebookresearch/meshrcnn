@@ -1,10 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import copy
+import json
+import logging
 import numpy as np
+import os
 import torch
+from detectron2.data import MetadataCatalog
 from detectron2.data import detection_utils as utils
 from detectron2.data import transforms as T
 from detectron2.structures import Boxes, BoxMode, Instances
+from pytorch3d.io import load_obj
 
 from meshrcnn.structures import MeshInstances, VoxelInstances
 from meshrcnn.utils import shape as shape_utils
@@ -12,6 +17,8 @@ from meshrcnn.utils import shape as shape_utils
 from PIL import Image
 
 __all__ = ["MeshRCNNMapper"]
+
+logger = logging.getLogger(__name__)
 
 
 def annotations_to_instances(annos, image_size):
@@ -69,7 +76,7 @@ class MeshRCNNMapper:
     Note that for our existing models, mean/std normalization is done by the model instead of here.
     """
 
-    def __init__(self, cfg, is_train=True):
+    def __init__(self, cfg, is_train=True, dataset_names=None):
         self.tfm_gens = utils.build_transform_gen(cfg, is_train)
 
         # fmt: off
@@ -94,6 +101,21 @@ class MeshRCNNMapper:
 
         self.is_train = is_train
 
+        assert dataset_names is not None
+        # load unique obj meshes
+        # Pix3D models are few in number (= 735) thus it's more efficient
+        # to load them in memory rather than read them at every iteration
+        all_mesh_models = {}
+        for dataset_name in dataset_names:
+            json_file = MetadataCatalog.get(dataset_name).json_file
+            model_root = MetadataCatalog.get(dataset_name).image_root
+            logger.info("Loading models from {}...".format(dataset_name))
+            dataset_mesh_models = load_unique_meshes(json_file, model_root)
+            all_mesh_models.update(dataset_mesh_models)
+            logger.info("Unique objects loaded: {}".format(len(dataset_mesh_models)))
+
+        self._all_mesh_models = all_mesh_models
+
     def __call__(self, dataset_dict):
         """
         Transform the dataset_dict according to the configured transformations.
@@ -114,8 +136,8 @@ class MeshRCNNMapper:
             for anno in dataset_dict["annotations"]:
                 mesh_models.append(
                     [
-                        dataset_dict["mesh_models"][anno["mesh"]][0].clone(),
-                        dataset_dict["mesh_models"][anno["mesh"]][1].clone(),
+                        self._all_mesh_models[anno["mesh"]][0].clone(),
+                        self._all_mesh_models[anno["mesh"]][1].clone(),
                     ]
                 )
 
@@ -285,3 +307,20 @@ class MeshRCNNMapper:
             else:
                 raise ValueError("Transform {} not recognized".format(t))
         return verts, faces
+
+
+def load_unique_meshes(json_file, model_root):
+    with open(json_file, "r") as f:
+        anns = json.load(f)["annotations"]
+    # find unique models
+    unique_models = []
+    for obj in anns:
+        model_type = obj["model"]
+        if model_type not in unique_models:
+            unique_models.append(model_type)
+    # read unique models
+    object_models = {}
+    for model in unique_models:
+        mesh = load_obj(os.path.join(model_root, model))
+        object_models[model] = [mesh[0], mesh[1].verts_idx]
+    return object_models

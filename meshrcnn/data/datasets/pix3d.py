@@ -1,10 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
-import glob
 import logging
 import os
-from detectron2.data import DatasetCatalog, MetadataCatalog
+from detectron2.data import MetadataCatalog
 from detectron2.structures import BoxMode
-from pytorch3d.io import load_obj
 
 """
 This file contains functions to parse COCO-format annotations into dicts in "Detectron2 format".
@@ -38,35 +36,34 @@ def load_pix3d_json(json_file, image_root, dataset_name=None):
     coco_api = COCO(json_file)
 
     id_map = None
-    if dataset_name is not None:
-        meta = MetadataCatalog.get(dataset_name)
-        cat_ids = sorted(coco_api.getCatIds())
-        cats = coco_api.loadCats(cat_ids)
-        # The categories in a custom json file may not be sorted.
-        thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
-        meta.thing_classes = thing_classes
+    assert dataset_name is not None
+    meta = MetadataCatalog.get(dataset_name)
+    cat_ids = sorted(coco_api.getCatIds())
+    cats = coco_api.loadCats(cat_ids)
+    # The categories in a custom json file may not be sorted.
+    thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
+    meta.thing_classes = thing_classes
 
-        # In COCO, certain category ids are artificially removed,
-        # and by convention they are always ignored.
-        # We deal with COCO's id issue and translate
-        # the category ids to contiguous ids in [0, 80).
+    # In COCO, certain category ids are artificially removed,
+    # and by convention they are always ignored.
+    # We deal with COCO's id issue and translate
+    # the category ids to contiguous ids in [0, 80).
 
-        # It works by looking at the "categories" field in the json, therefore
-        # if users' own json also have incontiguous ids, we'll
-        # apply this mapping as well but print a warning.
-        if not (min(cat_ids) == 1 and max(cat_ids) == len(cat_ids)):
-            logger.warning(
-                """
+    # It works by looking at the "categories" field in the json, therefore
+    # if users' own json also have incontiguous ids, we'll
+    # apply this mapping as well but print a warning.
+    if not (min(cat_ids) == 1 and max(cat_ids) == len(cat_ids)):
+        logger.warning(
+            """
 Category ids in annotations are not in [1, #categories]! We'll apply a mapping for you.
 """
-            )
-        id_map = {v: i for i, v in enumerate(cat_ids)}
-        meta.thing_dataset_id_to_contiguous_id = id_map
+        )
+    id_map = {v: i for i, v in enumerate(cat_ids)}
+    meta.thing_dataset_id_to_contiguous_id = id_map
 
     # sort indices for reproducible results
     img_ids = sorted(list(coco_api.imgs.keys()))
-    # DEBUG: for few instances only - for fast debugging
-    # img_ids = img_ids[89:99]
+
     # imgs is a list of dicts, each looks something like:
     # {'license': 4,
     #  'url': 'http://farm6.staticflickr.com/5454/9413846304_881d5e5c3b_z.jpg',
@@ -95,11 +92,6 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
     imgs_anns = list(zip(imgs, anns))
 
     logger.info("Loaded {} images in COCO format from {}".format(len(imgs_anns), json_file))
-
-    # load unique meshes
-    # NOTE that Pix3D models are few in number (= 735) thus it's more efficient
-    # to load them in memory rather than read them at every iteration
-    mesh_models = load_models(anns, image_root)
 
     dataset_dicts = []
 
@@ -151,28 +143,9 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
                 obj["category_id"] = id_map[obj["category_id"]]
             objs.append(obj)
         record["annotations"] = objs
-        record["mesh_models"] = mesh_models
         dataset_dicts.append(record)
 
     return dataset_dicts
-
-
-def load_models(anns, model_root):
-    # find unique models
-    unique_models = []
-    for anno in anns:
-        for obj in anno:
-            model_type = obj["model"]
-            if model_type not in unique_models:
-                unique_models.append(model_type)
-    # read unique models
-    object_models = {}
-    logger.info("Unique objects {}".format(len(unique_models)))
-    for model in unique_models:
-        mesh = load_obj(os.path.join(model_root, model))
-        object_models[model] = [mesh[0], mesh[1].verts_idx]
-    logger.info("Done loading models")
-    return object_models
 
 
 if __name__ == "__main__":

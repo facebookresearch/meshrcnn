@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
-import copy
 from collections import OrderedDict
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
@@ -24,25 +23,25 @@ from meshrcnn.evaluation import Pix3DEvaluator
 
 class Trainer(DefaultTrainer):
     @classmethod
-    def build_evaluator(cls, cfg, dataset_name, params=None):
+    def build_evaluator(cls, cfg, dataset_name):
         evaluator_type = MetadataCatalog.get(dataset_name).evaluator_type
         if evaluator_type == "pix3d":
-            return Pix3DEvaluator(
-                dataset_name,
-                cfg,
-                True,
-                mesh_models=params["mesh_models"] if "mesh_models" in params else None,
-            )
+            return Pix3DEvaluator(dataset_name, cfg, True)
         else:
             raise ValueError("The evaluator type is wrong")
 
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
-        return build_detection_test_loader(cfg, dataset_name, mapper=MeshRCNNMapper(cfg, False))
+        return build_detection_test_loader(
+            cfg, dataset_name, mapper=MeshRCNNMapper(cfg, False, dataset_names=(dataset_name,))
+        )
 
     @classmethod
     def build_train_loader(cls, cfg):
-        return build_detection_train_loader(cfg, mapper=MeshRCNNMapper(cfg, True))
+        dataset_names = cfg.DATASETS.TRAIN
+        return build_detection_train_loader(
+            cfg, mapper=MeshRCNNMapper(cfg, True, dataset_names=dataset_names)
+        )
 
     @classmethod
     def test(cls, cfg, model):
@@ -57,9 +56,7 @@ class Trainer(DefaultTrainer):
         results = OrderedDict()
         for dataset_name in cfg.DATASETS.TEST:
             data_loader = cls.build_test_loader(cfg, dataset_name)
-            # ugly hack to use preloaded models to save time from loading them again
-            vars = {"mesh_models": copy.deepcopy(data_loader.dataset._dataset[0]["mesh_models"])}
-            evaluator = cls.build_evaluator(cfg, dataset_name, params=vars)
+            evaluator = cls.build_evaluator(cfg, dataset_name)
             results_i = inference_on_dataset(model, data_loader, evaluator)
             results[dataset_name] = results_i
             if comm.is_main_process():

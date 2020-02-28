@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import copy
 import itertools
+import json
 import logging
 import numpy as np
 import os
@@ -13,6 +14,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.evaluation.evaluator import DatasetEvaluator
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
 from pycocotools.coco import COCO
+from pytorch3d.io import load_obj
 from pytorch3d.structures import Meshes
 from pytorch3d.utils import ico_sphere
 
@@ -21,6 +23,8 @@ from meshrcnn.utils import shape as shape_utils
 from meshrcnn.utils import vis as vis_utils
 from meshrcnn.utils.metrics import compare_meshes
 
+logger = logging.getLogger(__name__)
+
 
 class Pix3DEvaluator(DatasetEvaluator):
     """
@@ -28,7 +32,7 @@ class Pix3DEvaluator(DatasetEvaluator):
     outputs.
     """
 
-    def __init__(self, dataset_name, cfg, distributed, output_dir=None, mesh_models=None):
+    def __init__(self, dataset_name, cfg, distributed, output_dir=None):
         """
         Args:
             dataset_name (str): name of the dataset to be evaluated.
@@ -38,7 +42,6 @@ class Pix3DEvaluator(DatasetEvaluator):
             distributed (True): if True, will collect results from all ranks for evaluation.
                 Otherwise, will evaluate the results in the current process.
             output_dir (str): optional, an output directory to dump results.
-            mesh_models (dict): Contains the mesh models (if not None, they are not loaded)
         """
         self._tasks = self._tasks_from_config(cfg)
         self._distributed = distributed
@@ -52,7 +55,17 @@ class Pix3DEvaluator(DatasetEvaluator):
         self._coco_api = COCO(self._metadata.json_file)
 
         self._filter_iou = 0.3
-        self._mesh_models = mesh_models
+
+        # load unique obj files
+        assert dataset_name is not None
+        # load unique obj meshes
+        # Pix3D models are few in number (= 735) thus it's more efficient
+        # to load them in memory rather than read them at every iteration
+        logger.info("Loading unique objects from {}...".format(dataset_name))
+        json_file = MetadataCatalog.get(dataset_name).json_file
+        model_root = MetadataCatalog.get(dataset_name).image_root
+        self._mesh_models = load_unique_meshes(json_file, model_root)
+        logger.info("Unique objects loaded: {}".format(len(self._mesh_models)))
 
     def reset(self):
         self._predictions = []
@@ -458,3 +471,20 @@ def transform_meshes_to_camera_coord_system(meshes, boxes, zranges, Ks, imsize):
         new_faces.append(faces)
 
     return Meshes(verts=new_verts, faces=new_faces)
+
+
+def load_unique_meshes(json_file, model_root):
+    with open(json_file, "r") as f:
+        anns = json.load(f)["annotations"]
+    # find unique models
+    unique_models = []
+    for obj in anns:
+        model_type = obj["model"]
+        if model_type not in unique_models:
+            unique_models.append(model_type)
+    # read unique models
+    object_models = {}
+    for model in unique_models:
+        mesh = load_obj(os.path.join(model_root, model))
+        object_models[model] = [mesh[0], mesh[1].verts_idx]
+    return object_models
