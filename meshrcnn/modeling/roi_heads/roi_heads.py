@@ -4,7 +4,6 @@ import torch
 from detectron2.layers import ShapeSpec, cat
 from detectron2.modeling import ROI_HEADS_REGISTRY
 from detectron2.modeling.poolers import ROIPooler
-from detectron2.modeling.roi_heads.fast_rcnn import FastRCNNOutputLayers, FastRCNNOutputs
 from detectron2.modeling.roi_heads.roi_heads import StandardROIHeads, select_foreground_proposals
 from pytorch3d.ops import cubify
 from pytorch3d.structures import Meshes
