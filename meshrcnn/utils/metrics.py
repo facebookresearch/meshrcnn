@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 import torch
 import torch.nn.functional as F
-from pytorch3d.ops import nn_points_idx, sample_points_from_meshes
+from pytorch3d.ops import knn_gather, knn_points, sample_points_from_meshes
 
 logger = logging.getLogger(__name__)
 
@@ -181,24 +181,33 @@ def _compute_sampling_metrics(pred_points, pred_normals, gt_points, gt_normals, 
           shape (N,) giving the value of the metric for the batch
     """
     metrics = {}
+    lengths_pred = torch.full(
+        (pred_points.shape[0],), pred_points.shape[1], dtype=torch.int64, device=pred_points.device
+    )
+    lengths_gt = torch.full(
+        (gt_points.shape[0],), gt_points.shape[1], dtype=torch.int64, device=gt_points.device
+    )
 
     # For each predicted point, find its neareast-neighbor GT point
-    pred_points_near, _, pred_normals_near = nn_points_idx(pred_points, gt_points, gt_normals)
-    if gt_normals is None:
+    knn_pred = knn_points(pred_points, gt_points, lengths1=lengths_pred, lengths2=lengths_gt, K=1)
+    # Compute L1 and L2 distances between each pred point and its nearest GT
+    pred_to_gt_dists2 = knn_pred.dists[..., 0]  # (N, S)
+    pred_to_gt_dists = pred_to_gt_dists2.sqrt()  # (N, S)
+    if gt_normals is not None:
+        pred_normals_near = knn_gather(gt_normals, knn_pred.idx, lengths_gt)[..., 0, :]  # (N, S, 3)
+    else:
         pred_normals_near = None
 
     # For each GT point, find its nearest-neighbor predicted point
-    gt_points_near, _, gt_normals_near = nn_points_idx(gt_points, pred_points, pred_normals)
-    if pred_normals is None:
-        gt_normals_near = None
-
-    # Compute L1 and L2 distances between each pred point and its nearest GT
-    pred_to_gt_dists = (pred_points - pred_points_near).norm(dim=2, p=2)
-    pred_to_gt_dists2 = pred_to_gt_dists ** 2.0
-
+    knn_gt = knn_points(gt_points, pred_points, lengths1=lengths_gt, lengths2=lengths_pred, K=1)
     # Compute L1 and L2 dists between each GT point and its nearest pred point
-    gt_to_pred_dists = (gt_points - gt_points_near).norm(dim=2, p=2)
-    gt_to_pred_dists2 = gt_to_pred_dists ** 2.0
+    gt_to_pred_dists2 = knn_gt.dists[..., 0]  # (N, S)
+    gt_to_pred_dists = gt_to_pred_dists2.sqrt()  # (N, S)
+
+    if pred_normals is not None:
+        gt_normals_near = knn_gather(pred_normals, knn_gt.idx, lengths_pred)[..., 0, :]  # (N, S, 3)
+    else:
+        gt_normals_near = None
 
     # Compute L2 chamfer distances
     chamfer_l2 = pred_to_gt_dists2.mean(dim=1) + gt_to_pred_dists2.mean(dim=1)

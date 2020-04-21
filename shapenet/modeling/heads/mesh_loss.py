@@ -107,7 +107,9 @@ class MeshLoss(nn.Module):
             return total_loss, losses
 
         losses = {}
-        cham_loss, normal_loss = chamfer_distance(points_pred, points_gt, normals_pred, normals_gt)
+        cham_loss, normal_loss = chamfer_distance(
+            points_pred, points_gt, x_normals=normals_pred, y_normals=normals_gt
+        )
 
         total_loss = total_loss + self.chamfer_weight * cham_loss
         total_loss = total_loss + self.normal_weight * normal_loss

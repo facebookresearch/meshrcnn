@@ -78,8 +78,8 @@ def mesh_rcnn_loss(
         loss_chamfer, loss_normals = chamfer_distance(
             pred_sampled_verts,
             gt_sampled_verts,
-            pred_sampled_normals,
-            gt_sampled_normals,
+            x_normals=pred_sampled_normals,
+            y_normals=gt_sampled_normals,
             weights=wts,
         )
 
