@@ -85,19 +85,10 @@ class MeshRCNNMapper:
         self.voxel_on       = cfg.MODEL.VOXEL_ON
         self.mesh_on        = cfg.MODEL.MESH_ON
         self.zpred_on       = cfg.MODEL.ZPRED_ON
-        self.load_proposals = cfg.MODEL.LOAD_PROPOSALS
         # fmt: on
 
-        if self.load_proposals:
-            raise ValueError("Loading proposals not yet supported")
-
         if cfg.MODEL.LOAD_PROPOSALS:
-            self.min_box_side_len = cfg.MODEL.PROPOSAL_GENERATOR.MIN_SIZE
-            self.proposal_topk = (
-                cfg.DATASETS.PRECOMPUTED_PROPOSAL_TOPK_TRAIN
-                if is_train
-                else cfg.DATASETS.PRECOMPUTED_PROPOSAL_TOPK_TEST
-            )
+            raise ValueError("Loading pre-computed proposals is not supported.")
 
         self.is_train = is_train
 
@@ -159,12 +150,6 @@ class MeshRCNNMapper:
         # Therefore it's important to use torch.Tensor.
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
         # Can use uint8 if it turns out to be slow some day
-
-        # USER: Remove if you don't use pre-computed proposals.
-        if self.load_proposals:
-            utils.transform_proposals(
-                dataset_dict, image_shape, transforms, self.min_box_side_len, self.proposal_topk
-            )
 
         if not self.is_train:
             dataset_dict.pop("annotations", None)
