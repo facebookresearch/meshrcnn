@@ -9,6 +9,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.data import detection_utils as utils
 from detectron2.data import transforms as T
 from detectron2.structures import Boxes, BoxMode, Instances
+from fvcore.common.file_io import PathManager
 from pytorch3d.io import load_obj
 
 from meshrcnn.structures import MeshInstances, VoxelInstances
@@ -242,7 +243,8 @@ class MeshRCNNMapper:
 
     def _process_mask(self, mask, transforms):
         # applies image transformations to mask
-        mask = np.asarray(Image.open(mask))
+        with PathManager.open(mask, "rb") as f:
+            mask = np.asarray(Image.open(f))
         mask = transforms.apply_image(mask)
         mask = torch.as_tensor(np.ascontiguousarray(mask), dtype=torch.float32) / 255.0
         return mask
@@ -295,7 +297,7 @@ class MeshRCNNMapper:
 
 
 def load_unique_meshes(json_file, model_root):
-    with open(json_file, "r") as f:
+    with PathManager.open(json_file, "r") as f:
         anns = json.load(f)["annotations"]
     # find unique models
     unique_models = []
@@ -306,6 +308,7 @@ def load_unique_meshes(json_file, model_root):
     # read unique models
     object_models = {}
     for model in unique_models:
-        mesh = load_obj(os.path.join(model_root, model))
+        with PathManager.open(os.path.join(model_root, model), "rb") as f:
+            mesh = load_obj(f, load_textures=False)
         object_models[model] = [mesh[0], mesh[1].verts_idx]
     return object_models

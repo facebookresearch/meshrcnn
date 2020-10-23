@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import torch
+from fvcore.common.file_io import PathManager
 from pytorch3d.ops import sample_points_from_meshes
 from pytorch3d.structures import Meshes
 from torch.utils.data import Dataset
@@ -50,7 +51,7 @@ class MeshVoxDataset(Dataset):
         self.transform = T.Compose(transform)
 
         summary_json = os.path.join(data_dir, "summary.json")
-        with open(summary_json, "r") as f:
+        with PathManager.open(summary_json, "r") as f:
             summary = json.load(f)
             for sid in summary:
                 logger.info("Starting synset %s" % sid)
@@ -71,7 +72,8 @@ class MeshVoxDataset(Dataset):
                         allowed_iids = set(split[sid][mid])
                     if not sample_online and in_memory:
                         samples_path = os.path.join(data_dir, sid, mid, "samples.pt")
-                        samples = torch.load(samples_path)
+                        with PathManager.open(samples_path, "rb") as f:
+                            samples = torch.load(f)
                         self.mid_to_samples[mid] = samples
                     for iid in range(num_imgs):
                         if allowed_iids is None or iid in allowed_iids:
@@ -89,14 +91,15 @@ class MeshVoxDataset(Dataset):
 
         # Always read metadata for this model; TODO cache in __init__?
         metadata_path = os.path.join(self.data_dir, sid, mid, "metadata.pt")
-        metadata = torch.load(metadata_path)
+        with PathManager.open(metadata_path, "rb") as f:
+            metadata = torch.load(f)
         K = metadata["intrinsic"]
         RT = metadata["extrinsics"][iid]
         img_path = metadata["image_list"][iid]
         img_path = os.path.join(self.data_dir, sid, mid, "images", img_path)
 
         # Load the image
-        with open(img_path, "rb") as f:
+        with PathManager.open(img_path, "rb") as f:
             img = Image.open(f).convert("RGB")
         img = self.transform(img)
 
@@ -104,7 +107,8 @@ class MeshVoxDataset(Dataset):
         verts, faces = None, None
         if self.return_mesh:
             mesh_path = os.path.join(self.data_dir, sid, mid, "mesh.pt")
-            mesh_data = torch.load(mesh_path)
+            with PathManager.open(mesh_path, "rb") as f:
+                mesh_data = torch.load(f)
             verts, faces = mesh_data["verts"], mesh_data["faces"]
             verts = project_verts(verts, RT)
 
@@ -115,7 +119,8 @@ class MeshVoxDataset(Dataset):
             if samples is None:
                 # They were not cached in memory, so read off disk
                 samples_path = os.path.join(self.data_dir, sid, mid, "samples.pt")
-                samples = torch.load(samples_path)
+                with PathManager.open(samples_path, "rb") as f:
+                    samples = torch.load(f)
             points = samples["points_sampled"]
             normals = samples["normals_sampled"]
             idx = torch.randperm(points.shape[0])[: self.num_samples]
@@ -129,11 +134,13 @@ class MeshVoxDataset(Dataset):
             # and we will compute voxels in postprocess
             voxel_file = "vox%d/%03d.pt" % (self.voxel_size, iid)
             voxel_file = os.path.join(self.data_dir, sid, mid, voxel_file)
-            if os.path.isfile(voxel_file):
-                voxels = torch.load(voxel_file)
+            if PathManager.isfile(voxel_file):
+                with PathManager.open(voxel_file, "rb") as f:
+                    voxels = torch.load(f)
             else:
                 voxel_path = os.path.join(self.data_dir, sid, mid, "voxels.pt")
-                voxel_data = torch.load(voxel_path)
+                with PathManager.open(voxel_path, "rb") as f:
+                    voxel_data = torch.load(f)
                 voxels = voxel_data["voxel_coords"]
                 P = K.mm(RT)
 

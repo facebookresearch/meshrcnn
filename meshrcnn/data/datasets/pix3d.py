@@ -1,8 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import contextlib
+import io
 import logging
 import os
 from detectron2.data import MetadataCatalog
 from detectron2.structures import BoxMode
+from fvcore.common.file_io import PathManager
 
 """
 This file contains functions to parse COCO-format annotations into dicts in "Detectron2 format".
@@ -33,7 +36,9 @@ def load_pix3d_json(json_file, image_root, dataset_name=None):
     """
     from pycocotools.coco import COCO
 
-    coco_api = COCO(json_file)
+    json_file = PathManager.get_local_path(json_file)
+    with contextlib.redirect_stdout(io.StringIO()):
+        coco_api = COCO(json_file)
 
     id_map = None
     assert dataset_name is not None

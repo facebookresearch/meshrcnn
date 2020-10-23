@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import contextlib
 import copy
+import io
 import itertools
 import json
 import logging
@@ -13,6 +15,7 @@ import torch
 from detectron2.data import MetadataCatalog
 from detectron2.evaluation.evaluator import DatasetEvaluator
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
+from fvcore.common.file_io import PathManager
 from pycocotools.coco import COCO
 from pytorch3d.io import load_obj
 from pytorch3d.structures import Meshes
@@ -52,7 +55,9 @@ class Pix3DEvaluator(DatasetEvaluator):
         self._logger = logging.getLogger(__name__)
 
         self._metadata = MetadataCatalog.get(dataset_name)
-        self._coco_api = COCO(self._metadata.json_file)
+        json_file = PathManager.get_local_path(self._metadata.json_file)
+        with contextlib.redirect_stdout(io.StringIO()):
+            self._coco_api = COCO(json_file)
 
         self._filter_iou = 0.3
 
@@ -261,7 +266,8 @@ def evaluate_for_pix3d(
 
         # get original ground truth mask, box, label & mesh
         maskfile = os.path.join(metadata.image_root, gt_anns["segmentation"])
-        gt_mask = torch.tensor(np.asarray(Image.open(maskfile), dtype=np.float32) / 255.0)
+        with PathManager.open(maskfile, "rb") as f:
+            gt_mask = torch.tensor(np.asarray(Image.open(f), dtype=np.float32) / 255.0)
         assert gt_mask.shape[0] == image_height and gt_mask.shape[1] == image_width
 
         gt_mask = (gt_mask > 0).to(dtype=torch.uint8)  # binarize mask
@@ -474,7 +480,7 @@ def transform_meshes_to_camera_coord_system(meshes, boxes, zranges, Ks, imsize):
 
 
 def load_unique_meshes(json_file, model_root):
-    with open(json_file, "r") as f:
+    with PathManager.open(json_file, "r") as f:
         anns = json.load(f)["annotations"]
     # find unique models
     unique_models = []
@@ -485,6 +491,7 @@ def load_unique_meshes(json_file, model_root):
     # read unique models
     object_models = {}
     for model in unique_models:
-        mesh = load_obj(os.path.join(model_root, model))
+        with PathManager.open(os.path.join(model_root, model), "rb") as f:
+            mesh = load_obj(f, load_textures=False)
         object_models[model] = [mesh[0], mesh[1].verts_idx]
     return object_models

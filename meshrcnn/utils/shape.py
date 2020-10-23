@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import numpy as np
 import torch
+from fvcore.common.file_io import PathManager
 from scipy import io as sio
 
 from meshrcnn.utils.projtransform import ProjectiveTransform
@@ -100,7 +101,8 @@ def read_voxel(voxelfile):
     """
     Reads voxel and transforms it in the form of verts
     """
-    voxel = sio.loadmat(voxelfile)["voxel"]
+    with PathManager.open(voxelfile, "rb") as f:
+        voxel = sio.loadmat(f)["voxel"]
     voxel = np.rot90(voxel, k=3, axes=(1, 2))
     verts = np.argwhere(voxel > 0).astype(np.float32, copy=False)
 

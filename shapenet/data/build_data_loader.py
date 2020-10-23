@@ -3,6 +3,7 @@ import json
 import logging
 import torch
 from detectron2.utils import comm as comm
+from fvcore.common.file_io import PathManager
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Subset
 from torch.utils.data.distributed import DistributedSampler
 
@@ -32,7 +33,7 @@ def build_data_loader(
 
     splits_file = cfg.DATASETS.SPLITS_FILE
 
-    with open(splits_file, "r") as f:
+    with PathManager.open(splits_file, "r") as f:
         splits = json.load(f)
     if split_name is not None:
         if split_name in ["train", "train_eval"]:

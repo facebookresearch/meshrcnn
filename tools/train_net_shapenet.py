@@ -29,12 +29,13 @@ def copy_data(args):
     data_base, data_ext = os.path.splitext(os.path.basename(args.data_dir))
     assert data_ext in [".tar", ".zip"]
     t0 = time.time()
+    # Copy file from source to a local file
     logger.info("Copying %s to %s ..." % (args.data_dir, args.tmp_dir))
-    data_tmp = shutil.copy(args.data_dir, args.tmp_dir)
+    zip_local_path = PathManager.get_local_path(args.data_dir)
     t1 = time.time()
     logger.info("Copying took %fs" % (t1 - t0))
-    logger.info("Unpacking %s ..." % data_tmp)
-    shutil.unpack_archive(data_tmp, args.tmp_dir)
+    shutil.unpack_archive(zip_local_path, args.tmp_dir)
+    logger.info("Unpacking %s ..." % zip_local_path)
     t2 = time.time()
     logger.info("Unpacking took %f" % (t2 - t1))
     args.data_dir = os.path.join(args.tmp_dir, data_base)
