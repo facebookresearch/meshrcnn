@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import numpy as np
 import torch
-from fvcore.common.file_io import PathManager
+from detectron2.utils.file_io import PathManager
 from scipy import io as sio
 
 from meshrcnn.utils.projtransform import ProjectiveTransform

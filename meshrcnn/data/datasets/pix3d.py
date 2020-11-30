@@ -5,7 +5,7 @@ import logging
 import os
 from detectron2.data import MetadataCatalog
 from detectron2.structures import BoxMode
-from fvcore.common.file_io import PathManager
+from detectron2.utils.file_io import PathManager
 
 """
 This file contains functions to parse COCO-format annotations into dicts in "Detectron2 format".

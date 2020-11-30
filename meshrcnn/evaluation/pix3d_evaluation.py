@@ -15,7 +15,7 @@ import torch
 from detectron2.data import MetadataCatalog
 from detectron2.evaluation.evaluator import DatasetEvaluator
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
-from fvcore.common.file_io import PathManager
+from detectron2.utils.file_io import PathManager
 from pycocotools.coco import COCO
 from pytorch3d.io import load_obj
 from pytorch3d.structures import Meshes

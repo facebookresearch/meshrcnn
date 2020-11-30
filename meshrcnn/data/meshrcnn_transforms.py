@@ -9,7 +9,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.data import detection_utils as utils
 from detectron2.data import transforms as T
 from detectron2.structures import Boxes, BoxMode, Instances
-from fvcore.common.file_io import PathManager
+from detectron2.utils.file_io import PathManager
 from pytorch3d.io import load_obj
 
 from meshrcnn.structures import MeshInstances, VoxelInstances
