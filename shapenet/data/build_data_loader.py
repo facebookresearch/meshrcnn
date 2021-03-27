@@ -2,7 +2,7 @@
 import json
 import logging
 import torch
-from detectron2.utils import comm as comm
+from detectron2.utils import comm
 from fvcore.common.file_io import PathManager
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Subset
 from torch.utils.data.distributed import DistributedSampler
