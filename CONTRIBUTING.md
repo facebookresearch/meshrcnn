@@ -10,7 +10,7 @@ or extensions.
 ## Pull Requests
 We actively welcome your pull requests.
 
-1. Fork the repo and create your branch from `master`.
+1. Fork the repo and create your branch from `main`.
 2. If you've changed APIs, update the documentation.
 4. Train and report performance of all models (and baselines if applicable).
 5. Make sure your code lints `./infra/linter.sh`.
