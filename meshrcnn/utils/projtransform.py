@@ -2,7 +2,7 @@
 import torch
 
 
-class ProjectiveTransform(object):
+class ProjectiveTransform:
     """
     Projective Transformation in PyTorch:
     Follows a similar design to skimage.ProjectiveTransform

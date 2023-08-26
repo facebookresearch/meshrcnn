@@ -49,7 +49,7 @@ def timeit(f, x, key=None, timing=None):
     return y
 
 
-class Timer(object):
+class Timer:
     """
     A context manager for timing nested chunks of code, like this:
 

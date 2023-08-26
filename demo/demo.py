@@ -27,7 +27,7 @@ import cv2
 logger = logging.getLogger("demo")
 
 
-class VisualizationDemo(object):
+class VisualizationDemo:
     def __init__(self, cfg, vis_highest_scoring=True, output_dir="./vis"):
         """
         Args:

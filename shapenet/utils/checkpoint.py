@@ -6,7 +6,7 @@ import torch
 logger = logging.getLogger(__name__)
 
 
-class Checkpoint(object):
+class Checkpoint:
     # These keys are saved in all checkpoints
     KEYS_TO_SAVE = [
         "t",
