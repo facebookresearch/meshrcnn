@@ -7,6 +7,7 @@ import os
 import shutil
 from collections import defaultdict
 from multiprocessing import Pool
+
 import torch
 from detectron2.utils.logger import setup_logger
 from pytorch3d.io import load_obj
@@ -15,11 +16,11 @@ from pytorch3d.structures import Meshes
 
 from shapenet.utils.binvox_torch import read_binvox_coords
 from shapenet.utils.coords import (
-    SHAPENET_MAX_ZMAX,
-    SHAPENET_MIN_ZMIN,
     compute_extrinsic_matrix,
     get_blender_intrinsic_matrix,
     project_verts,
+    SHAPENET_MAX_ZMAX,
+    SHAPENET_MIN_ZMIN,
 )
 
 logger = logging.getLogger("preprocess")
@@ -47,7 +48,12 @@ def validcheck(summary, splits):
                         if summary[sid][mid] < len(splits[split_set][sid][mid]):
                             logger.info(
                                 "mismatch of images for %s - %s: %d vs %d"
-                                % (sid, mid, len(splits[split_set][sid][mid]), summary[sid][mid])
+                                % (
+                                    sid,
+                                    mid,
+                                    len(splits[split_set][sid][mid]),
+                                    summary[sid][mid],
+                                )
                             )
                             valid = False
     return valid
@@ -76,7 +82,9 @@ def parse_args():
         help="Path to the splits file. This is used for final checking",
     )
     parser.add_argument(
-        "--output_dir", default="./datasets/shapenet/ShapeNetV1processed", help="Output directory"
+        "--output_dir",
+        default="./datasets/shapenet/ShapeNetV1processed",
+        help="Output directory",
     )
     parser.add_argument(
         "--models_per_synset",
@@ -188,7 +196,11 @@ def handle_model(args, sid, mid, i, N):
     image_list = load_image_list(args, sid, mid)
     extrinsics = load_extrinsics(args, sid, mid)
     intrinsic = get_blender_intrinsic_matrix()
-    metadata = {"image_list": image_list, "intrinsic": intrinsic, "extrinsics": extrinsics}
+    metadata = {
+        "image_list": image_list,
+        "intrinsic": intrinsic,
+        "extrinsics": extrinsics,
+    }
     metadata_path = os.path.join(output_dir, "metadata.pt")
     torch.save(metadata, metadata_path)
 
@@ -220,7 +232,10 @@ def handle_model(args, sid, mid, i, N):
         )
         points_sampled = points[0].cpu().detach()
         normals_sampled = normals[0].cpu().detach()
-        samples_data = {"points_sampled": points_sampled, "normals_sampled": normals_sampled}
+        samples_data = {
+            "points_sampled": points_sampled,
+            "normals_sampled": normals_sampled,
+        }
         samples_path = os.path.join(output_dir, "samples.pt")
         torch.save(samples_data, samples_path)
 
@@ -312,7 +327,7 @@ def voxelize(voxel_coords, P, V):
     return voxels
 
 
-if __name__ == "__main__":
+def invoke_main() -> None:
     args = parse_args()
     main(args)
     # Zips the output dir. This is needed if the user wants to copy
@@ -321,3 +336,7 @@ if __name__ == "__main__":
         logger.info("Archiving output...")
         shutil.make_archive(args.output_dir, "zip", base_dir=args.output_dir)
     logger.info("Done.")
+
+
+if __name__ == "__main__":
+    invoke_main()  # pragma: no cover

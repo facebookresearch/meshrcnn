@@ -2,20 +2,26 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 from collections import OrderedDict
+
 import detectron2.utils.comm as comm
-from detectron2.checkpoint import DetectionCheckpointer
-from detectron2.config import get_cfg
-from detectron2.data import (
-    MetadataCatalog,
-    build_detection_test_loader,
-    build_detection_train_loader,
-)
-from detectron2.engine import DefaultTrainer, default_argument_parser, default_setup, launch
-from detectron2.evaluation import inference_on_dataset
-from detectron2.utils.logger import setup_logger
 
 # required so that .register() calls are executed in module scope
 import meshrcnn.modeling  # noqa
+from detectron2.checkpoint import DetectionCheckpointer
+from detectron2.config import get_cfg
+from detectron2.data import (
+    build_detection_test_loader,
+    build_detection_train_loader,
+    MetadataCatalog,
+)
+from detectron2.engine import (
+    default_argument_parser,
+    default_setup,
+    DefaultTrainer,
+    launch,
+)
+from detectron2.evaluation import inference_on_dataset
+from detectron2.utils.logger import setup_logger
 from meshrcnn.config import get_meshrcnn_cfg_defaults
 from meshrcnn.data import MeshRCNNMapper
 from meshrcnn.evaluation import Pix3DEvaluator
@@ -33,7 +39,9 @@ class Trainer(DefaultTrainer):
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
         return build_detection_test_loader(
-            cfg, dataset_name, mapper=MeshRCNNMapper(cfg, False, dataset_names=(dataset_name,))
+            cfg,
+            dataset_name,
+            mapper=MeshRCNNMapper(cfg, False, dataset_names=(dataset_name,)),
         )
 
     @classmethod
@@ -76,7 +84,9 @@ def setup(args):
     cfg.freeze()
     default_setup(cfg, args)
     # Setup logger for "meshrcnn" module
-    setup_logger(output=cfg.OUTPUT_DIR, distributed_rank=comm.get_rank(), name="meshrcnn")
+    setup_logger(
+        output=cfg.OUTPUT_DIR, distributed_rank=comm.get_rank(), name="meshrcnn"
+    )
     return cfg
 
 
@@ -96,7 +106,7 @@ def main(args):
     return trainer.train()
 
 
-if __name__ == "__main__":
+def invoke_main() -> None:
     args = default_argument_parser().parse_args()
     print("Command Line Args:", args)
     launch(
@@ -107,3 +117,7 @@ if __name__ == "__main__":
         dist_url=args.dist_url,
         args=(args,),
     )
+
+
+if __name__ == "__main__":
+    invoke_main()  # pragma: no cover

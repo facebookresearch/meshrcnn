@@ -3,6 +3,7 @@ import contextlib
 import io
 import logging
 import os
+
 from detectron2.data import MetadataCatalog
 from detectron2.structures import BoxMode
 from detectron2.utils.file_io import PathManager
@@ -96,7 +97,9 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
     anns = [coco_api.imgToAnns[img_id] for img_id in img_ids]
     imgs_anns = list(zip(imgs, anns))
 
-    logger.info("Loaded {} images in COCO format from {}".format(len(imgs_anns), json_file))
+    logger.info(
+        "Loaded {} images in COCO format from {}".format(len(imgs_anns), json_file)
+    )
 
     dataset_dicts = []
 
@@ -123,7 +126,9 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
             assert anno.get("ignore", 0) == 0
 
             obj = {
-                field: anno[field] for field in ["iscrowd", "bbox", "category_id"] if field in anno
+                field: anno[field]
+                for field in ["iscrowd", "bbox", "category_id"]
+                if field in anno
             }
 
             segm = anno.get("segmentation", None)
@@ -153,7 +158,8 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
     return dataset_dicts
 
 
-if __name__ == "__main__":
+def main() -> None:
+    global logger
     """
     Test the Pix3D json dataset loader.
 
@@ -164,11 +170,12 @@ if __name__ == "__main__":
         "dataset_name" can be "coco", "coco_person", or other
         pre-registered ones
     """
-    from detectron2.utils.logger import setup_logger
-    import detectron2.data.datasets  # noqa # add pre-defined metadata
-    from meshrcnn.utils.vis import draw_pix3d_dict
-    import cv2
     import sys
+
+    import cv2
+    import detectron2.data.datasets  # noqa  # add pre-defined metadata
+    from detectron2.utils.logger import setup_logger
+    from meshrcnn.utils.vis import draw_pix3d_dict
 
     logger = setup_logger(name=__name__)
     meta = MetadataCatalog.get(sys.argv[3])
@@ -182,3 +189,7 @@ if __name__ == "__main__":
         vis = draw_pix3d_dict(d, meta.thing_classes + ["0"])
         fpath = os.path.join(dirname, os.path.basename(d["file_name"]))
         cv2.imwrite(fpath, vis)
+
+
+if __name__ == "__main__":
+    main()  # pragma: no cover

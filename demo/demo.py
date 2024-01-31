@@ -4,25 +4,25 @@
 import argparse
 import logging
 import multiprocessing as mp
-import numpy as np
 import os
+
+import cv2
+
+# required so that .register() calls are executed in module scope
+import meshrcnn.data  # noqa
+import meshrcnn.modeling  # noqa
+import meshrcnn.utils  # noqa
+import numpy as np
 import torch
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog
 from detectron2.data.detection_utils import read_image
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.logger import setup_logger
-from pytorch3d.io import save_obj
-from pytorch3d.structures import Meshes
-
-# required so that .register() calls are executed in module scope
-import meshrcnn.data  # noqa
-import meshrcnn.modeling  # noqa
-import meshrcnn.utils  # noqa
 from meshrcnn.config import get_meshrcnn_cfg_defaults
 from meshrcnn.evaluation import transform_meshes_to_camera_coord_system
-
-import cv2
+from pytorch3d.io import save_obj
+from pytorch3d.structures import Meshes
 
 logger = logging.getLogger("demo")
 
@@ -76,7 +76,9 @@ class VisualizationDemo:
                 verts=[mesh[0] for mesh in instances.pred_meshes],
                 faces=[mesh[1] for mesh in instances.pred_meshes],
             )
-            pred_dz = instances.pred_dz[:, 0] * (boxes.tensor[:, 3] - boxes.tensor[:, 1])
+            pred_dz = instances.pred_dz[:, 0] * (
+                boxes.tensor[:, 3] - boxes.tensor[:, 1]
+            )
             tc = pred_dz.abs().max() + 1.0
             zranges = torch.stack(
                 [
@@ -165,10 +167,14 @@ class VisualizationDemo:
             lineType=cv2.LINE_AA,
         )
 
-        save_file = os.path.join(self.output_dir, "%d_mask_%s_%.3f.png" % (det_id, cat_name, score))
+        save_file = os.path.join(
+            self.output_dir, "%d_mask_%s_%.3f.png" % (det_id, cat_name, score)
+        )
         cv2.imwrite(save_file, composite[:, :, ::-1])
 
-        save_file = os.path.join(self.output_dir, "%d_mesh_%s_%.3f.obj" % (det_id, cat_name, score))
+        save_file = os.path.join(
+            self.output_dir, "%d_mesh_%s_%.3f.obj" % (det_id, cat_name, score)
+        )
         verts, faces = mesh.get_mesh_verts_faces(0)
         save_obj(save_file, verts, faces)
 
@@ -196,7 +202,9 @@ def get_parser():
         "--focal-length", type=float, default=20.0, help="Focal length for the image"
     )
     parser.add_argument(
-        "--onlyhighest", action="store_true", help="will return only the highest scoring detection"
+        "--onlyhighest",
+        action="store_true",
+        help="will return only the highest scoring detection",
     )
 
     parser.add_argument(
@@ -208,7 +216,7 @@ def get_parser():
     return parser
 
 
-if __name__ == "__main__":
+def main() -> None:
     mp.set_start_method("spawn", force=True)
     args = get_parser().parse_args()
     logger = setup_logger(name="demo")
@@ -219,10 +227,16 @@ if __name__ == "__main__":
     im_name = args.input.split("/")[-1].split(".")[0]
 
     demo = VisualizationDemo(
-        cfg, vis_highest_scoring=args.onlyhighest, output_dir=os.path.join(args.output, im_name)
+        cfg,
+        vis_highest_scoring=args.onlyhighest,
+        output_dir=os.path.join(args.output, im_name),
     )
 
     # use PIL, to be consistent with evaluation
     img = read_image(args.input, format="BGR")
     predictions = demo.run_on_image(img, focal_length=args.focal_length)
     logger.info("Predictions saved in %s" % (os.path.join(args.output, im_name)))
+
+
+if __name__ == "__main__":
+    main()  # pragma: no cover
