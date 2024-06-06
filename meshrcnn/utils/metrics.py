@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import logging
 from collections import defaultdict
+
 import torch
 import torch.nn.functional as F
 from pytorch3d.ops import knn_gather, knn_points, sample_points_from_meshes
@@ -10,7 +11,13 @@ logger = logging.getLogger(__name__)
 
 @torch.no_grad()
 def compare_meshes(
-    pred_meshes, gt_meshes, num_samples=10000, scale="gt-10", thresholds=None, reduce=True, eps=1e-8
+    pred_meshes,
+    gt_meshes,
+    num_samples=10000,
+    scale="gt-10",
+    thresholds=None,
+    reduce=True,
+    eps=1e-8,
 ):
     """
     Compute evaluation metrics to compare meshes. We currently compute the
@@ -149,11 +156,15 @@ def _sample_meshes(meshes, num_samples):
         else:
             verts = meshes.verts_list
     else:
-        verts, normals = sample_points_from_meshes(meshes, num_samples, return_normals=True)
+        verts, normals = sample_points_from_meshes(
+            meshes, num_samples, return_normals=True
+        )
     return verts, normals
 
 
-def _compute_sampling_metrics(pred_points, pred_normals, gt_points, gt_normals, thresholds, eps):
+def _compute_sampling_metrics(
+    pred_points, pred_normals, gt_points, gt_normals, thresholds, eps
+):
     """
     Compute metrics that are based on sampling points and normals:
 
@@ -182,30 +193,44 @@ def _compute_sampling_metrics(pred_points, pred_normals, gt_points, gt_normals, 
     """
     metrics = {}
     lengths_pred = torch.full(
-        (pred_points.shape[0],), pred_points.shape[1], dtype=torch.int64, device=pred_points.device
+        (pred_points.shape[0],),
+        pred_points.shape[1],
+        dtype=torch.int64,
+        device=pred_points.device,
     )
     lengths_gt = torch.full(
-        (gt_points.shape[0],), gt_points.shape[1], dtype=torch.int64, device=gt_points.device
+        (gt_points.shape[0],),
+        gt_points.shape[1],
+        dtype=torch.int64,
+        device=gt_points.device,
     )
 
     # For each predicted point, find its neareast-neighbor GT point
-    knn_pred = knn_points(pred_points, gt_points, lengths1=lengths_pred, lengths2=lengths_gt, K=1)
+    knn_pred = knn_points(
+        pred_points, gt_points, lengths1=lengths_pred, lengths2=lengths_gt, K=1
+    )
     # Compute L1 and L2 distances between each pred point and its nearest GT
     pred_to_gt_dists2 = knn_pred.dists[..., 0]  # (N, S)
     pred_to_gt_dists = pred_to_gt_dists2.sqrt()  # (N, S)
     if gt_normals is not None:
-        pred_normals_near = knn_gather(gt_normals, knn_pred.idx, lengths_gt)[..., 0, :]  # (N, S, 3)
+        pred_normals_near = knn_gather(gt_normals, knn_pred.idx, lengths_gt)[
+            ..., 0, :
+        ]  # (N, S, 3)
     else:
         pred_normals_near = None
 
     # For each GT point, find its nearest-neighbor predicted point
-    knn_gt = knn_points(gt_points, pred_points, lengths1=lengths_gt, lengths2=lengths_pred, K=1)
+    knn_gt = knn_points(
+        gt_points, pred_points, lengths1=lengths_gt, lengths2=lengths_pred, K=1
+    )
     # Compute L1 and L2 dists between each GT point and its nearest pred point
     gt_to_pred_dists2 = knn_gt.dists[..., 0]  # (N, S)
     gt_to_pred_dists = gt_to_pred_dists2.sqrt()  # (N, S)
 
     if pred_normals is not None:
-        gt_normals_near = knn_gather(pred_normals, knn_gt.idx, lengths_pred)[..., 0, :]  # (N, S, 3)
+        gt_normals_near = knn_gather(pred_normals, knn_gt.idx, lengths_pred)[
+            ..., 0, :
+        ]  # (N, S, 3)
     else:
         gt_normals_near = None
 

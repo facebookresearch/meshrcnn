@@ -1,14 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import logging
-import numpy as np
 from collections import defaultdict
+
 import detectron2.utils.comm as comm
+import numpy as np
+
+import shapenet.utils.vis as vis_utils
 import torch
 from detectron2.evaluation import inference_context
 
 from meshrcnn.utils.metrics import compare_meshes
-
-import shapenet.utils.vis as vis_utils
 from shapenet.data.utils import image_to_numpy, imagenet_deprocess
 
 logger = logging.getLogger(__name__)
@@ -76,12 +77,20 @@ def evaluate_test(model, data_loader, vis_preds=False):
                     )
 
             num_batch_evaluated += 1
-            logger.info("Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader)))
+            logger.info(
+                "Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader))
+            )
 
     vis_utils.print_instances_class_histogram(
         num_instances,
         class_names,
-        {"chamfer": chamfer, "normal": normal, "f1_01": f1_01, "f1_03": f1_03, "f1_05": f1_05},
+        {
+            "chamfer": chamfer,
+            "normal": normal,
+            "f1_01": f1_01,
+            "f1_03": f1_03,
+            "f1_05": f1_05,
+        },
     )
 
 
@@ -133,7 +142,11 @@ def evaluate_test_p2m(model, data_loader):
             # In Pixel2Mesh, the squared L2 (L2^2) is computed instead.
             # i.e. (L2^2 < τ) <=> (L2 < sqrt(τ))
             cur_metrics = compare_meshes(
-                meshes_pred[-1], meshes_gt, scale=0.57, thresholds=[0.01, 0.014142], reduce=False
+                meshes_pred[-1],
+                meshes_gt,
+                scale=0.57,
+                thresholds=[0.01, 0.014142],
+                reduce=False,
             )
             cur_metrics["verts_per_mesh"] = meshes_pred[-1].num_verts_per_mesh().cpu()
             cur_metrics["faces_per_mesh"] = meshes_pred[-1].num_faces_per_mesh().cpu()
@@ -145,7 +158,9 @@ def evaluate_test_p2m(model, data_loader):
                 f1_2e_4[sid] += cur_metrics["F1@%f" % 0.014142][i].item()
 
             num_batch_evaluated += 1
-            logger.info("Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader)))
+            logger.info(
+                "Evaluated %d / %d batches" % (num_batch_evaluated, len(data_loader))
+            )
 
     vis_utils.print_instances_class_histogram_p2m(
         num_instances,
@@ -156,7 +171,12 @@ def evaluate_test_p2m(model, data_loader):
 
 @torch.no_grad()
 def evaluate_split(
-    model, loader, max_predictions=-1, num_predictions_keep=10, prefix="", store_predictions=False
+    model,
+    loader,
+    max_predictions=-1,
+    num_predictions_keep=10,
+    prefix="",
+    store_predictions=False,
 ):
     """
     This function is used to report validation performance during training.

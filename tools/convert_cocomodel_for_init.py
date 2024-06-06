@@ -5,13 +5,19 @@ Convert coco model for init. Remove class specific heads, optimizer and schedule
 so that this model can be used for pre-training
 """
 import argparse
+
 import torch
 
 
 def main():
     parser = argparse.ArgumentParser(description="Convert models for init")
     parser.add_argument(
-        "--model-file", default="", dest="modelfile", metavar="FILE", help="path to model", type=str
+        "--model-file",
+        default="",
+        dest="modelfile",
+        metavar="FILE",
+        help="path to model",
+        type=str,
     )
     parser.add_argument(
         "--output-file",

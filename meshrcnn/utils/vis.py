@@ -1,17 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import copy
 import itertools
-import numpy as np
 import os
+
+import numpy as np
 import pycocotools.mask as mask_util
 from detectron2.data import detection_utils
 from detectron2.structures import Boxes, BoxMode
 from detectron2.utils.colormap import colormap
 from pytorch3d.io import save_obj
 from pytorch3d.ops import sample_points_from_meshes
-from termcolor import colored
 
 from tabulate import tabulate
+from termcolor import colored
 
 try:
     import cv2  # noqa
@@ -76,7 +77,9 @@ def print_instances_class_histogram(num_instances, class_names, results):
         stralign="center",
     )
     print(
-        "Distribution of testing instances among all {} categories:\n".format(num_classes)
+        "Distribution of testing instances among all {} categories:\n".format(
+            num_classes
+        )
         + colored(table, "cyan")
     )
 
@@ -105,7 +108,9 @@ def draw_text(img, pos, text, font_scale=0.35):
     cv2.rectangle(img, back_topleft, back_bottomright, _GREEN, -1)
     # Show text.
     text_bottomleft = x0, y0 - int(0.2 * text_h)
-    cv2.putText(img, text, text_bottomleft, font, font_scale, _GRAY, lineType=cv2.LINE_AA)
+    cv2.putText(
+        img, text, text_bottomleft, font, font_scale, _GRAY, lineType=cv2.LINE_AA
+    )
     return img
 
 
@@ -149,7 +154,9 @@ def draw_mask(img, mask, color, alpha=0.4, draw_contours=True):
 
     if draw_contours:
         # opencv func signature has changed between versions
-        contours = cv2.findContours(mask.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)[-2]
+        contours = cv2.findContours(mask.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)[
+            -2
+        ]
         cv2.drawContours(img, contours, -1, _WHITE, 1, cv2.LINE_AA)
     return img.astype(np.uint8)
 
@@ -160,7 +167,14 @@ def draw_keypoints(img, keypoints):
         keypoints (ndarray): Nx2 array, each row is an (x, y) coordinate.
     """
     for coord in keypoints:
-        cv2.circle(img, tuple(coord), thickness=-1, lineType=cv2.LINE_AA, radius=3, color=_GREEN)
+        cv2.circle(
+            img,
+            tuple(coord),
+            thickness=-1,
+            lineType=cv2.LINE_AA,
+            radius=3,
+            color=_GREEN,
+        )
     return img
 
 
@@ -231,14 +245,18 @@ def visualize_minibatch(images, data, output_dir, vis_fg=False):
     # read image and add mean
     ims = images.tensor.cpu().numpy()
     num = ims.shape[0]
-    pixel_mean = np.expand_dims(np.expand_dims(np.array([102.9801, 115.9465, 122.7717]), 1), 2)
+    pixel_mean = np.expand_dims(
+        np.expand_dims(np.array([102.9801, 115.9465, 122.7717]), 1), 2
+    )
 
     proposals = data["proposals"]
     if vis_fg:
         proposals = data["fg_proposals"]
     assert len(proposals) == num
 
-    index = np.array([prop.proposal_boxes.tensor.shape[0] for prop in proposals]).cumsum()
+    index = np.array(
+        [prop.proposal_boxes.tensor.shape[0] for prop in proposals]
+    ).cumsum()
     index = np.concatenate((np.array([0]), index[:-1]))
 
     if "target_meshes" in data:
@@ -311,7 +329,9 @@ def visualize_minibatch(images, data, output_dir, vis_fg=False):
                 plt.title("Mesh")
             if vis_fg and "init_meshes" in data:
                 resolution = 28
-                verts, faces = data["init_meshes"].get_mesh_verts_faces(int(index[i] + j))
+                verts, faces = data["init_meshes"].get_mesh_verts_faces(
+                    int(index[i] + j)
+                )
                 verts = verts.cpu().numpy()
                 x = (verts[:, 0] + 1) * (resolution - 1) / 2.0
                 y = (verts[:, 1] + 1) * (resolution - 1) / 2.0
@@ -387,13 +407,19 @@ def visualize_predictions(
 
         # plot mask overlayed
         composite = image.copy()
-        composite = draw_mask(composite, mask, mask_color, alpha=alpha, draw_contours=False)
+        composite = draw_mask(
+            composite, mask, mask_color, alpha=alpha, draw_contours=False
+        )
         thickness = int(np.ceil(0.001 * image.shape[0]))
         composite = draw_boxes(composite, box, thickness)
 
-        save_file = os.path.join(output_dir, "%d_%d_%s_%.3f.png" % (image_id, i, cat_name, score))
+        save_file = os.path.join(
+            output_dir, "%d_%d_%s_%.3f.png" % (image_id, i, cat_name, score)
+        )
         cv2.imwrite(save_file, composite[:, :, ::-1])
 
-        save_file = os.path.join(output_dir, "%d_%d_%s_%.3f.obj" % (image_id, i, cat_name, score))
+        save_file = os.path.join(
+            output_dir, "%d_%d_%s_%.3f.obj" % (image_id, i, cat_name, score)
+        )
         verts, faces = meshes.get_mesh_verts_faces(i)
         save_obj(save_file, verts, faces)

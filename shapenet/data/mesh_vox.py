@@ -2,16 +2,17 @@
 import json
 import logging
 import os
+
 import torch
-from fvcore.common.file_io import PathManager
-from pytorch3d.ops import sample_points_from_meshes
-from pytorch3d.structures import Meshes
-from torch.utils.data import Dataset
 
 import torchvision.transforms as T
+from fvcore.common.file_io import PathManager
 from PIL import Image
+from pytorch3d.ops import sample_points_from_meshes
+from pytorch3d.structures import Meshes
 from shapenet.data.utils import imagenet_preprocess
-from shapenet.utils.coords import SHAPENET_MAX_ZMAX, SHAPENET_MIN_ZMIN, project_verts
+from shapenet.utils.coords import project_verts, SHAPENET_MAX_ZMAX, SHAPENET_MIN_ZMIN
+from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 

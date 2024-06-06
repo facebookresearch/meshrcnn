@@ -3,6 +3,7 @@
 
 import copy
 import math
+
 import torch
 from pytorch3d.structures import Meshes
 
@@ -114,7 +115,9 @@ def compute_extrinsic_matrix(azimuth, elevation, distance):
     ca = math.cos(az_rad)
     se = math.sin(el_rad)
     ce = math.cos(el_rad)
-    R_world2obj = torch.tensor([[ca * ce, sa * ce, -se], [-sa, ca, 0], [ca * se, sa * se, ce]])
+    R_world2obj = torch.tensor(
+        [[ca * ce, sa * ce, -se], [-sa, ca, 0], [ca * se, sa * se, ce]]
+    )
     R_obj2cam = torch.tensor([[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]])
     R_world2cam = R_obj2cam.mm(R_world2obj)
     cam_location = torch.tensor([[distance, 0, 0]]).t()

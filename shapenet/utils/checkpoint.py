@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import logging
 import os
+
 import torch
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,9 @@ class Checkpoint:
     # These keys are saved for "big" checkpoints that include the model state
     STATE_KEYS = ["latest_states", "latest_states_ts", "best_states", "best_states_ts"]
 
-    def __init__(self, output_path="checkpoint.pt", early_stop_metric=None, overwrite=False):
+    def __init__(
+        self, output_path="checkpoint.pt", early_stop_metric=None, overwrite=False
+    ):
         output_dir, filename = os.path.split(output_path)
         filename, ext = os.path.splitext(filename)
         self.with_model_path = "%s_with_model%s" % (filename, ext)

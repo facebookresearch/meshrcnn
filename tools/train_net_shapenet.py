@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import time
+
 import detectron2.utils.comm as comm
 import torch
 import torch.distributed as dist
@@ -18,9 +19,9 @@ from shapenet.data import build_data_loader, register_shapenet
 from shapenet.evaluation import evaluate_split, evaluate_test, evaluate_test_p2m
 
 # required so that .register() calls are executed in module scope
-from shapenet.modeling import MeshLoss, build_model
+from shapenet.modeling import build_model, MeshLoss
 from shapenet.solver import build_lr_scheduler, build_optimizer
-from shapenet.utils import Checkpoint, Timer, clean_state_dict, default_argument_parser
+from shapenet.utils import Checkpoint, clean_state_dict, default_argument_parser, Timer
 
 logger = logging.getLogger("shapenet")
 
@@ -73,7 +74,10 @@ def main_worker(worker_id, args):
     if args.num_gpus > 1:
         distributed = True
         dist.init_process_group(
-            backend="NCCL", init_method=args.dist_url, world_size=args.num_gpus, rank=worker_id
+            backend="NCCL",
+            init_method=args.dist_url,
+            world_size=args.num_gpus,
+            rank=worker_id,
         )
         torch.cuda.set_device(worker_id)
 
@@ -140,7 +144,9 @@ def training_loop(cfg, cp, model, optimizer, scheduler, loaders, device, loss_fn
     loss_moving_average = cp.data.get("loss_moving_average", None)
     while cp.epoch < cfg.SOLVER.NUM_EPOCHS:
         if comm.is_main_process():
-            logger.info("Starting epoch %d / %d" % (cp.epoch + 1, cfg.SOLVER.NUM_EPOCHS))
+            logger.info(
+                "Starting epoch %d / %d" % (cp.epoch + 1, cfg.SOLVER.NUM_EPOCHS)
+            )
 
         # When using a DistributedSampler we need to manually set the epoch so that
         # the data is shuffled differently at each epoch
@@ -211,8 +217,12 @@ def training_loop(cfg, cp, model, optimizer, scheduler, loaders, device, loss_fn
                         str_out += " mem: %d" % max_mem_mb
 
                     if len(meshes_pred) > 0:
-                        mean_V = meshes_pred[-1].num_verts_per_mesh().float().mean().item()
-                        mean_F = meshes_pred[-1].num_faces_per_mesh().float().mean().item()
+                        mean_V = (
+                            meshes_pred[-1].num_verts_per_mesh().float().mean().item()
+                        )
+                        mean_F = (
+                            meshes_pred[-1].num_faces_per_mesh().float().mean().item()
+                        )
                         str_out += ", mesh size = (%d, %d)" % (mean_V, mean_F)
                     logger.info(str_out)
 
@@ -224,7 +234,10 @@ def training_loop(cfg, cp, model, optimizer, scheduler, loaders, device, loss_fn
             if loss is None:
                 pass
             elif loss.item() > cfg.SOLVER.SKIP_LOSS_THRESH * loss_moving_average:
-                logger.info("Warning: Skipping loss %f on GPU %d" % (loss.item(), comm.get_rank()))
+                logger.info(
+                    "Warning: Skipping loss %f on GPU %d"
+                    % (loss.item(), comm.get_rank())
+                )
                 cp.store_metric(losses_skipped=loss.item())
                 skip = True
             else:
@@ -322,7 +335,9 @@ def setup_loaders(cfg):
     # make two different Dataset / DataLoaders for the training set: one for
     # training which uses precomputd samples, and one for evaluation which uses
     # more samples and computes them on the fly. This is sort of gross.
-    loaders["train_eval"] = build_data_loader(cfg, "MeshVox", "train_eval", multigpu=False)
+    loaders["train_eval"] = build_data_loader(
+        cfg, "MeshVox", "train_eval", multigpu=False
+    )
 
     loaders["val"] = build_data_loader(cfg, "MeshVox", "val", multigpu=False)
     return loaders
@@ -351,7 +366,10 @@ def setup(args):
     comm.synchronize()
 
     logger = setup_logger(
-        output_dir, color=colorful_logging, name="shapenet", distributed_rank=comm.get_rank()
+        output_dir,
+        color=colorful_logging,
+        name="shapenet",
+        distributed_rank=comm.get_rank(),
     )
     logger.info(
         "Using {} GPUs per machine. Rank of current process: {}".format(
@@ -362,7 +380,9 @@ def setup(args):
 
     logger.info("Environment info:\n" + collect_env_info())
     logger.info(
-        "Loaded config file {}:\n{}".format(args.config_file, open(args.config_file, "r").read())
+        "Loaded config file {}:\n{}".format(
+            args.config_file, open(args.config_file, "r").read()
+        )
     )
     logger.info("Running with full config:\n{}".format(cfg))
     if comm.is_main_process() and output_dir:

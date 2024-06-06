@@ -43,7 +43,7 @@ def read_binvox_coords(f, integer_division=True, dtype=torch.float32):
 
 
 def _compute_idxs_v1(vals, counts):
-    """ Naive version of index computation with loops """
+    """Naive version of index computation with loops"""
     idxs = []
     cur = 0
     for i in range(vals.shape[0]):
@@ -56,7 +56,7 @@ def _compute_idxs_v1(vals, counts):
 
 
 def _compute_idxs_v2(vals, counts):
-    """ Fast vectorized version of index computation """
+    """Fast vectorized version of index computation"""
     # Consider an example where:
     # vals   = [0, 1, 0, 1, 1]
     # counts = [2, 3, 3, 2, 1]

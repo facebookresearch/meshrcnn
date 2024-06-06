@@ -6,25 +6,25 @@ import io
 import itertools
 import json
 import logging
-import numpy as np
 import os
 from collections import OrderedDict
+
 import detectron2.utils.comm as comm
+
+import meshrcnn.utils.VOCap as VOCap
+import numpy as np
 import pycocotools.mask as mask_util
 import torch
 from detectron2.data import MetadataCatalog
 from detectron2.evaluation.evaluator import DatasetEvaluator
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
 from detectron2.utils.file_io import PathManager
+from meshrcnn.utils import shape as shape_utils, vis as vis_utils
+from meshrcnn.utils.metrics import compare_meshes
 from pycocotools.coco import COCO
 from pytorch3d.io import load_obj
 from pytorch3d.structures import Meshes
 from pytorch3d.utils import ico_sphere
-
-import meshrcnn.utils.VOCap as VOCap
-from meshrcnn.utils import shape as shape_utils
-from meshrcnn.utils import vis as vis_utils
-from meshrcnn.utils.metrics import compare_meshes
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +107,9 @@ class Pix3DEvaluator(DatasetEvaluator):
                     # use RLE to encode the masks, because they are too large and takes memory
                     # since this evaluator stores outputs of the entire dataset
                     rles = [
-                        mask_util.encode(np.array(mask[:, :, None], order="F", dtype="uint8"))[0]
+                        mask_util.encode(
+                            np.array(mask[:, :, None], order="F", dtype="uint8")
+                        )[0]
                         for mask in instances.pred_masks
                     ]
                     for rle in rles:
@@ -134,7 +136,8 @@ class Pix3DEvaluator(DatasetEvaluator):
 
         if self._output_dir:
             torch.save(
-                self._predictions, os.path.join(self._output_dir, "instances_predictions.pth")
+                self._predictions,
+                os.path.join(self._output_dir, "instances_predictions.pth"),
             )
 
         self._results = OrderedDict()
@@ -186,7 +189,9 @@ def evaluate_for_pix3d(
 
     # classes
     cat_ids = sorted(dataset.getCatIds())
-    reverse_id_mapping = {v: k for k, v in metadata.thing_dataset_id_to_contiguous_id.items()}
+    reverse_id_mapping = {
+        v: k for k, v in metadata.thing_dataset_id_to_contiguous_id.items()
+    }
 
     # initialize tensors to record box & mask AP, number of gt positives
     box_apscores, box_aplabels = {}, {}
@@ -275,7 +280,9 @@ def evaluate_for_pix3d(
         gt_box = np.array(gt_anns["bbox"]).reshape(-1, 4)  # xywh from coco
         gt_box = BoxMode.convert(gt_box, BoxMode.XYWH_ABS, BoxMode.XYXY_ABS)
         gt_label = gt_anns["category_id"]
-        faux_gt_targets = Boxes(torch.tensor(gt_box, dtype=torch.float32, device=device))
+        faux_gt_targets = Boxes(
+            torch.tensor(gt_box, dtype=torch.float32, device=device)
+        )
 
         # load gt mesh and extrinsics/intrinsics
         gt_R = torch.tensor(gt_anns["rot_mat"]).to(device)
@@ -319,7 +326,10 @@ def evaluate_for_pix3d(
         zranges = torch.stack(
             [
                 torch.stack(
-                    [tc - tc * pred_dz[i] / 2.0 / gt_K[0], tc + tc * pred_dz[i] / 2.0 / gt_K[0]]
+                    [
+                        tc - tc * pred_dz[i] / 2.0 / gt_K[0],
+                        tc + tc * pred_dz[i] / 2.0 / gt_K[0],
+                    ]
                 )
                 for i in range(len(meshes))
             ],
@@ -411,19 +421,25 @@ def evaluate_for_pix3d(
         valid += 1
 
         cat_box_ap = VOCap.compute_ap(
-            torch.cat(box_apscores[cat_id]), torch.cat(box_aplabels[cat_id]), npos[cat_id]
+            torch.cat(box_apscores[cat_id]),
+            torch.cat(box_aplabels[cat_id]),
+            npos[cat_id],
         )
         boxap += cat_box_ap
         pix3d_metrics["box_ap@%.1f - %s" % (iou_thresh, cat_name)] = cat_box_ap
 
         cat_mask_ap = VOCap.compute_ap(
-            torch.cat(mask_apscores[cat_id]), torch.cat(mask_aplabels[cat_id]), npos[cat_id]
+            torch.cat(mask_apscores[cat_id]),
+            torch.cat(mask_aplabels[cat_id]),
+            npos[cat_id],
         )
         maskap += cat_mask_ap
         pix3d_metrics["mask_ap@%.1f - %s" % (iou_thresh, cat_name)] = cat_mask_ap
 
         cat_mesh_ap = VOCap.compute_ap(
-            torch.cat(mesh_apscores[cat_id]), torch.cat(mesh_aplabels[cat_id]), npos[cat_id]
+            torch.cat(mesh_apscores[cat_id]),
+            torch.cat(mesh_aplabels[cat_id]),
+            npos[cat_id],
         )
         meshap += cat_mesh_ap
         pix3d_metrics["mesh_ap@%.1f - %s" % (iou_thresh, cat_name)] = cat_mesh_ap

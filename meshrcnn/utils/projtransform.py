@@ -42,7 +42,9 @@ class ProjectiveTransform:
             [
                 coords,
                 torch.ones(
-                    (coords.shape[0], coords.shape[1], 1), device=coords.device, dtype=torch.float32
+                    (coords.shape[0], coords.shape[1], 1),
+                    device=coords.device,
+                    dtype=torch.float32,
                 ),
             ],
             dim=2,
@@ -172,7 +174,9 @@ def _center_and_normalize_points(points):
     device = points.device
     centroid = torch.mean(points, 1, keepdim=True)
 
-    rms = torch.sqrt(torch.sum((points - centroid) ** 2.0, dim=(1, 2)) / points.shape[1])
+    rms = torch.sqrt(
+        torch.sum((points - centroid) ** 2.0, dim=(1, 2)) / points.shape[1]
+    )
 
     norm_factor = torch.sqrt(torch.tensor([2.0], device=device)) / rms
 
@@ -193,7 +197,11 @@ def _center_and_normalize_points(points):
     pointsh = torch.cat(
         [
             points,
-            torch.ones((points.shape[0], points.shape[1], 1), device=device, dtype=torch.float32),
+            torch.ones(
+                (points.shape[0], points.shape[1], 1),
+                device=device,
+                dtype=torch.float32,
+            ),
         ],
         dim=2,
     )

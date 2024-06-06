@@ -1,8 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import meshrcnn.utils.shape as shape_utils
 import torch
 from pytorch3d.structures import Meshes
-
-import meshrcnn.utils.shape as shape_utils
 
 
 def batch_crop_meshes_within_box(meshes, boxes, Ks):

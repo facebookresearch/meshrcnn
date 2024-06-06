@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
-import torch
-
 import meshrcnn.utils.shape as shape_utils
+import torch
 
 
 def batch_crop_voxels_within_box(voxels, boxes, Ks, voxel_side_len):

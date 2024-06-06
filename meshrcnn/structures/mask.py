@@ -28,7 +28,9 @@ def crop_mask_within_box(mask, box, mask_size):
 
     # 2. Resize mask
     cropped_mask = cropped_mask.unsqueeze(0).unsqueeze(0)
-    cropped_mask = F.interpolate(cropped_mask, size=(mask_size, mask_size), mode="bilinear")
+    cropped_mask = F.interpolate(
+        cropped_mask, size=(mask_size, mask_size), mode="bilinear"
+    )
     cropped_mask = cropped_mask.squeeze(0).squeeze(0)
 
     # 3. Binarize
@@ -56,7 +58,10 @@ def batch_crop_masks_within_box(masks, boxes, mask_side_len):
     boxes = boxes.to(torch.device("cpu"))
     masks = masks.to(torch.device("cpu"))
 
-    results = [crop_mask_within_box(mask, box, mask_side_len) for mask, box in zip(masks, boxes)]
+    results = [
+        crop_mask_within_box(mask, box, mask_side_len)
+        for mask, box in zip(masks, boxes)
+    ]
 
     if len(results) == 0:
         return torch.empty(0, dtype=torch.float32, device=device)

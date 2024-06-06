@@ -1,9 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import math
-import numpy as np
+
 import fvcore.nn.weight_init as weight_init
+import numpy as np
 import torch
-from detectron2.layers import ShapeSpec, cat
+from detectron2.layers import cat, ShapeSpec
 from detectron2.utils.registry import Registry
 from fvcore.nn import smooth_l1_loss
 from torch import nn
@@ -33,7 +34,11 @@ class FastRCNNFCHead(nn.Module):
         num_classes     = cfg.MODEL.ROI_HEADS.NUM_CLASSES
         # fmt: on
 
-        self._output_size = (input_shape.channels, input_shape.height, input_shape.width)
+        self._output_size = (
+            input_shape.channels,
+            input_shape.height,
+            input_shape.width,
+        )
 
         self.fcs = []
         for k in range(num_fc):

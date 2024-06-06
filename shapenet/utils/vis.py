@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import itertools
 import os
+
 from pytorch3d.io import save_obj
-from termcolor import colored
 
 from tabulate import tabulate
+from termcolor import colored
 
 try:
     import cv2  # noqa
@@ -69,14 +70,24 @@ def print_instances_class_histogram(num_instances, class_names, results):
     data = itertools.zip_longest(*[data[i::N_COLS] for i in range(N_COLS)])
     table = tabulate(
         data,
-        headers=["category", "#instances", "chamfer", "normal", "F1(0.1)", "F1(0.3)", "F1(0.5)"]
+        headers=[
+            "category",
+            "#instances",
+            "chamfer",
+            "normal",
+            "F1(0.1)",
+            "F1(0.3)",
+            "F1(0.5)",
+        ]
         * (N_COLS // 2),
         tablefmt="pipe",
         numalign="left",
         stralign="center",
     )
     print(
-        "Distribution of testing instances among all {} categories:\n".format(num_classes)
+        "Distribution of testing instances among all {} categories:\n".format(
+            num_classes
+        )
         + colored(table, "cyan")
     )
 
@@ -110,7 +121,14 @@ def print_instances_class_histogram_p2m(num_instances, class_names, results):
     mean_f1_2e_4 = sum(data[5::6]) / num_classes
     data.extend([None] * (N_COLS - (len(data) % N_COLS)))
     data.extend(
-        ["total", total_num_instances, mean_chamfer, mean_normal, mean_f1_1e_4, mean_f1_2e_4]
+        [
+            "total",
+            total_num_instances,
+            mean_chamfer,
+            mean_normal,
+            mean_f1_1e_4,
+            mean_f1_2e_4,
+        ]
     )
     data.extend([None] * (N_COLS - (len(data) % N_COLS)))
     data.extend(
@@ -126,14 +144,23 @@ def print_instances_class_histogram_p2m(num_instances, class_names, results):
     data = itertools.zip_longest(*[data[i::N_COLS] for i in range(N_COLS)])
     table = tabulate(
         data,
-        headers=["category", "#instances", "chamfer", "normal", "F1(0.0001)", "F1(0.0002)"]
+        headers=[
+            "category",
+            "#instances",
+            "chamfer",
+            "normal",
+            "F1(0.0001)",
+            "F1(0.0002)",
+        ]
         * (N_COLS // 2),
         tablefmt="pipe",
         numalign="left",
         stralign="center",
     )
     print(
-        "Distribution of testing instances among all {} categories:\n".format(num_classes)
+        "Distribution of testing instances among all {} categories:\n".format(
+            num_classes
+        )
         + colored(table, "cyan")
     )
 

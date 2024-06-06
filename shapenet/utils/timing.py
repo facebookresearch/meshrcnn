@@ -1,9 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """ Utilities for timing GPU operations in PyTorch. """
 import logging
-import numpy as np
 import time
 from collections import defaultdict
+
+import numpy as np
 import torch
 
 logger = logging.getLogger(__name__)

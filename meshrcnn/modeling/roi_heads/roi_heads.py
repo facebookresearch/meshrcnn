@@ -1,13 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 from typing import Dict
+
 import torch
-from detectron2.layers import ShapeSpec, cat
+from detectron2.layers import cat, ShapeSpec
 from detectron2.modeling import ROI_HEADS_REGISTRY
 from detectron2.modeling.poolers import ROIPooler
-from detectron2.modeling.roi_heads.roi_heads import StandardROIHeads, select_foreground_proposals
-from pytorch3d.ops import cubify
-from pytorch3d.structures import Meshes
-from pytorch3d.utils import ico_sphere
+from detectron2.modeling.roi_heads.roi_heads import (
+    select_foreground_proposals,
+    StandardROIHeads,
+)
 
 from meshrcnn.modeling.roi_heads.mask_head import mask_rcnn_loss
 from meshrcnn.modeling.roi_heads.mesh_head import (
@@ -20,8 +21,15 @@ from meshrcnn.modeling.roi_heads.voxel_head import (
     voxel_rcnn_inference,
     voxel_rcnn_loss,
 )
-from meshrcnn.modeling.roi_heads.z_head import build_z_head, z_rcnn_inference, z_rcnn_loss
+from meshrcnn.modeling.roi_heads.z_head import (
+    build_z_head,
+    z_rcnn_inference,
+    z_rcnn_loss,
+)
 from meshrcnn.utils import vis as vis_utils
+from pytorch3d.ops import cubify
+from pytorch3d.structures import Meshes
+from pytorch3d.utils import ico_sphere
 
 
 @ROI_HEADS_REGISTRY.register()
@@ -92,7 +100,9 @@ class MeshRCNNROIHeads(StandardROIHeads):
             pooler_type=voxel_pooler_type,
         )
         shape = ShapeSpec(
-            channels=in_channels, width=voxel_pooler_resolution, height=voxel_pooler_resolution
+            channels=in_channels,
+            width=voxel_pooler_resolution,
+            height=voxel_pooler_resolution,
         )
         self.voxel_head = build_voxel_head(cfg, shape)
 
@@ -126,7 +136,9 @@ class MeshRCNNROIHeads(StandardROIHeads):
         self.mesh_head = build_mesh_head(
             cfg,
             ShapeSpec(
-                channels=in_channels, height=mesh_pooler_resolution, width=mesh_pooler_resolution
+                channels=in_channels,
+                height=mesh_pooler_resolution,
+                width=mesh_pooler_resolution,
             ),
         )
 
@@ -154,7 +166,9 @@ class MeshRCNNROIHeads(StandardROIHeads):
             losses.update(self._forward_shape(features, proposals))
             # print minibatch examples
             if self._vis:
-                vis_utils.visualize_minibatch(self._misc["images"], self._misc, self._vis_dir, True)
+                vis_utils.visualize_minibatch(
+                    self._misc["images"], self._misc, self._vis_dir, True
+                )
 
             return [], losses
         else:
@@ -293,7 +307,9 @@ class MeshRCNNROIHeads(StandardROIHeads):
                 mesh_features = self.mesh_pooler(features, proposal_boxes)
                 if not self.voxel_on:
                     if mesh_features.shape[0] > 0:
-                        init_mesh = ico_sphere(self.ico_sphere_level, mesh_features.device)
+                        init_mesh = ico_sphere(
+                            self.ico_sphere_level, mesh_features.device
+                        )
                         init_mesh = init_mesh.extend(mesh_features.shape[0])
                     else:
                         init_mesh = Meshes(verts=[], faces=[])
@@ -307,20 +323,26 @@ class MeshRCNNROIHeads(StandardROIHeads):
                 }
 
                 if not pred_meshes[0].isempty():
-                    loss_chamfer, loss_normals, loss_edge, target_meshes = mesh_rcnn_loss(
-                        pred_meshes,
-                        proposals,
-                        loss_weights=loss_weights,
-                        gt_num_samples=self.gt_num_samples,
-                        pred_num_samples=self.pred_num_samples,
-                        gt_coord_thresh=self.gt_coord_thresh,
+                    loss_chamfer, loss_normals, loss_edge, target_meshes = (
+                        mesh_rcnn_loss(
+                            pred_meshes,
+                            proposals,
+                            loss_weights=loss_weights,
+                            gt_num_samples=self.gt_num_samples,
+                            pred_num_samples=self.pred_num_samples,
+                            gt_coord_thresh=self.gt_coord_thresh,
+                        )
                     )
                     if self._vis:
                         self._misc["init_meshes"] = init_mesh
                         self._misc["target_meshes"] = target_meshes
                 else:
-                    loss_chamfer = sum(k.sum() for k in self.mesh_head.parameters()) * 0.0
-                    loss_normals = sum(k.sum() for k in self.mesh_head.parameters()) * 0.0
+                    loss_chamfer = (
+                        sum(k.sum() for k in self.mesh_head.parameters()) * 0.0
+                    )
+                    loss_normals = (
+                        sum(k.sum() for k in self.mesh_head.parameters()) * 0.0
+                    )
                     loss_edge = sum(k.sum() for k in self.mesh_head.parameters()) * 0.0
 
                 losses.update(
@@ -350,7 +372,9 @@ class MeshRCNNROIHeads(StandardROIHeads):
                 mesh_features = self.mesh_pooler(features, pred_boxes)
                 if not self.voxel_on:
                     if mesh_features.shape[0] > 0:
-                        init_mesh = ico_sphere(self.ico_sphere_level, mesh_features.device)
+                        init_mesh = ico_sphere(
+                            self.ico_sphere_level, mesh_features.device
+                        )
                         init_mesh = init_mesh.extend(mesh_features.shape[0])
                     else:
                         init_mesh = Meshes(verts=[], faces=[])

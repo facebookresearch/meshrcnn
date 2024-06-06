@@ -45,7 +45,9 @@ class VoxelHead(nn.Module):
             padding=0,
         )
 
-        self.predictor = Conv2d(conv_dims, self.voxel_size, kernel_size=1, stride=1, padding=0)
+        self.predictor = Conv2d(
+            conv_dims, self.voxel_size, kernel_size=1, stride=1, padding=0
+        )
 
         for layer in self.conv_norm_relus + [self.deconv]:
             weight_init.c2_msra_fill(layer)

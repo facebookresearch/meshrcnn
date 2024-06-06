@@ -1,16 +1,22 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 from collections import OrderedDict
+
 import fvcore.nn.weight_init as weight_init
 import torch
-from detectron2.layers import ShapeSpec, cat
+from detectron2.layers import cat, ShapeSpec
 from detectron2.utils.registry import Registry
+
+from meshrcnn.structures.mesh import batch_crop_meshes_within_box, MeshInstances
 from pytorch3d.loss import chamfer_distance, mesh_edge_loss
-from pytorch3d.ops import GraphConv, SubdivideMeshes, sample_points_from_meshes, vert_align
+from pytorch3d.ops import (
+    GraphConv,
+    sample_points_from_meshes,
+    SubdivideMeshes,
+    vert_align,
+)
 from pytorch3d.structures import Meshes
 from torch import nn
 from torch.nn import functional as F
-
-from meshrcnn.structures.mesh import MeshInstances, batch_crop_meshes_within_box
 
 ROI_MESH_HEAD_REGISTRY = Registry("ROI_MESH_HEAD")
 
@@ -52,7 +58,9 @@ def mesh_rcnn_loss(
 
         gt_K = instances_per_image.gt_K
         gt_mesh_per_image = batch_crop_meshes_within_box(
-            instances_per_image.gt_meshes, instances_per_image.proposal_boxes.tensor, gt_K
+            instances_per_image.gt_meshes,
+            instances_per_image.proposal_boxes.tensor,
+            gt_K,
         ).to(device=pred_meshes[0].device)
         gt_verts.extend(gt_mesh_per_image.verts_list())
         gt_faces.extend(gt_mesh_per_image.faces_list())
@@ -130,11 +138,15 @@ def mesh_rcnn_inference(pred_meshes, pred_instances):
             continue
         verts_list = pred_mesh.verts_list()
         faces_list = pred_mesh.faces_list()
-        instances.pred_meshes = MeshInstances([(v, f) for (v, f) in zip(verts_list, faces_list)])
+        instances.pred_meshes = MeshInstances(
+            [(v, f) for (v, f) in zip(verts_list, faces_list)]
+        )
 
 
 class MeshRefinementStage(nn.Module):
-    def __init__(self, img_feat_dim, vert_feat_dim, hidden_dim, stage_depth, gconv_init="normal"):
+    def __init__(
+        self, img_feat_dim, vert_feat_dim, hidden_dim, stage_depth, gconv_init="normal"
+    ):
         """
         Args:
           img_feat_dim: Dimension of features we will get from vert_align

@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import json
 import logging
+
 import torch
 from detectron2.utils import comm
 from fvcore.common.file_io import PathManager
@@ -17,7 +18,13 @@ def _identity(x):
 
 
 def build_data_loader(
-    cfg, dataset, split_name, num_workers=4, multigpu=False, shuffle=True, num_samples=None
+    cfg,
+    dataset,
+    split_name,
+    num_workers=4,
+    multigpu=False,
+    shuffle=True,
+    num_samples=None,
 ):
 
     batch_size = cfg.SOLVER.BATCH_SIZE
@@ -62,7 +69,11 @@ def build_data_loader(
     else:
         raise ValueError("Dataset %s not registered" % dataset)
 
-    loader_kwargs = {"batch_size": batch_size, "collate_fn": collate_fn, "num_workers": num_workers}
+    loader_kwargs = {
+        "batch_size": batch_size,
+        "collate_fn": collate_fn,
+        "num_workers": num_workers,
+    }
 
     if hasattr(dset, "postprocess"):
         postprocess_fn = dset.postprocess

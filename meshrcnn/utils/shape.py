@@ -2,15 +2,17 @@
 import numpy as np
 import torch
 from detectron2.utils.file_io import PathManager
-from scipy import io as sio
 
 from meshrcnn.utils.projtransform import ProjectiveTransform
+from scipy import io as sio
 
 
 def cuboid3D_to_unitbox3D(cub3D):
     device = cub3D.device
     dst = torch.tensor(
-        [[-1.0, -1.0], [1.0, -1.0], [-1.0, 1.0], [1.0, 1.0]], device=device, dtype=torch.float32
+        [[-1.0, -1.0], [1.0, -1.0], [-1.0, 1.0], [1.0, 1.0]],
+        device=device,
+        dtype=torch.float32,
     )
     dst = dst.view(1, 4, 2).expand(cub3D.shape[0], -1, -1)
     # for (x,z) plane
@@ -116,7 +118,7 @@ def read_voxel(voxelfile):
     verts[:, 0] = verts[:, 0] - (max_x + min_x) / 2
     verts[:, 1] = verts[:, 1] - (max_y + min_y) / 2
     verts[:, 2] = verts[:, 2] - (max_z + min_z) / 2
-    scale = np.sqrt(np.max(np.sum(verts ** 2, axis=1))) * 2
+    scale = np.sqrt(np.max(np.sum(verts**2, axis=1))) * 2
     verts /= scale
     verts = torch.tensor(verts, dtype=torch.float32)
 

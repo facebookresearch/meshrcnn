@@ -2,9 +2,9 @@
 import torch
 import torch.nn as nn
 from pytorch3d.ops import GraphConv, SubdivideMeshes, vert_align
-from torch.nn import functional as F
 
 from shapenet.utils.coords import project_verts
+from torch.nn import functional as F
 
 
 class MeshRefinementHead(nn.Module):
@@ -23,7 +23,11 @@ class MeshRefinementHead(nn.Module):
         for i in range(self.num_stages):
             vert_feat_dim = 0 if i == 0 else hidden_dim
             stage = MeshRefinementStage(
-                input_channels, vert_feat_dim, hidden_dim, stage_depth, gconv_init=graph_conv_init
+                input_channels,
+                vert_feat_dim,
+                hidden_dim,
+                stage_depth,
+                gconv_init=graph_conv_init,
             )
             self.stages.append(stage)
 
@@ -53,7 +57,9 @@ class MeshRefinementHead(nn.Module):
 
 
 class MeshRefinementStage(nn.Module):
-    def __init__(self, img_feat_dim, vert_feat_dim, hidden_dim, stage_depth, gconv_init="normal"):
+    def __init__(
+        self, img_feat_dim, vert_feat_dim, hidden_dim, stage_depth, gconv_init="normal"
+    ):
         """
         Args:
           img_feat_dim (int): Dimension of features we will get from vert_align
@@ -99,7 +105,9 @@ class MeshRefinementStage(nn.Module):
 
         if P is not None:
             vert_pos_padded = project_verts(meshes.verts_padded(), P)
-            vert_pos_packed = _padded_to_packed(vert_pos_padded, verts_padded_to_packed_idx)
+            vert_pos_packed = _padded_to_packed(
+                vert_pos_padded, verts_padded_to_packed_idx
+            )
         else:
             vert_pos_padded = meshes.verts_padded()
             vert_pos_packed = meshes.verts_packed()
@@ -110,7 +118,9 @@ class MeshRefinementStage(nn.Module):
         vert_pos_padded = vert_pos_padded * factor
         # Get features from the image
         vert_align_feats = vert_align(img_feats, vert_pos_padded)
-        vert_align_feats = _padded_to_packed(vert_align_feats, verts_padded_to_packed_idx)
+        vert_align_feats = _padded_to_packed(
+            vert_align_feats, verts_padded_to_packed_idx
+        )
         vert_align_feats = F.relu(self.bottleneck(vert_align_feats))
 
         # Prepare features for first graph conv layer

@@ -2,20 +2,19 @@
 import copy
 import json
 import logging
-import numpy as np
 import os
+
+import numpy as np
 import torch
-from detectron2.data import MetadataCatalog
-from detectron2.data import detection_utils as utils
-from detectron2.data import transforms as T
+from detectron2.data import detection_utils as utils, MetadataCatalog, transforms as T
 from detectron2.structures import Boxes, BoxMode, Instances
 from detectron2.utils.file_io import PathManager
-from pytorch3d.io import load_obj
 
 from meshrcnn.structures import MeshInstances, VoxelInstances
 from meshrcnn.utils import shape as shape_utils
 
 from PIL import Image
+from pytorch3d.io import load_obj
 
 __all__ = ["MeshRCNNMapper"]
 
@@ -35,7 +34,10 @@ def annotations_to_instances(annos, image_size):
         Instances: It will contains fields "gt_boxes", "gt_classes",
             "gt_masks", "gt_keypoints", if they can be obtained from `annos`.
     """
-    boxes = [BoxMode.convert(obj["bbox"], obj["bbox_mode"], BoxMode.XYXY_ABS) for obj in annos]
+    boxes = [
+        BoxMode.convert(obj["bbox"], obj["bbox_mode"], BoxMode.XYXY_ABS)
+        for obj in annos
+    ]
     target = Instances(image_size)
     boxes = target.gt_boxes = Boxes(boxes)
     boxes.clip(image_size)
@@ -133,7 +135,9 @@ class MeshRCNNMapper:
                     ]
                 )
 
-        dataset_dict = {key: value for key, value in dataset_dict.items() if key != "mesh_models"}
+        dataset_dict = {
+            key: value for key, value in dataset_dict.items() if key != "mesh_models"
+        }
         dataset_dict = copy.deepcopy(dataset_dict)  # it will be modified by code below
         if "annotations" in dataset_dict:
             for i, anno in enumerate(dataset_dict["annotations"]):
@@ -149,7 +153,9 @@ class MeshRCNNMapper:
         # Pytorch's dataloader is efficient on torch.Tensor due to shared-memory,
         # but not efficient on large generic data structures due to the use of pickle & mp.Queue.
         # Therefore it's important to use torch.Tensor.
-        dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
+        dataset_dict["image"] = torch.as_tensor(
+            image.transpose(2, 0, 1).astype("float32")
+        )
         # Can use uint8 if it turns out to be slow some day
 
         if not self.is_train:
@@ -174,14 +180,18 @@ class MeshRCNNMapper:
 
         After this method, the box mode will be set to XYXY_ABS.
         """
-        bbox = BoxMode.convert(annotation["bbox"], annotation["bbox_mode"], BoxMode.XYXY_ABS)
+        bbox = BoxMode.convert(
+            annotation["bbox"], annotation["bbox_mode"], BoxMode.XYXY_ABS
+        )
         # Note that bbox is 1d (per-instance bounding box)
         annotation["bbox"] = transforms.apply_box([bbox])[0]
         annotation["bbox_mode"] = BoxMode.XYXY_ABS
 
         # each instance contains 1 mask
         if self.mask_on and "segmentation" in annotation:
-            annotation["segmentation"] = self._process_mask(annotation["segmentation"], transforms)
+            annotation["segmentation"] = self._process_mask(
+                annotation["segmentation"], transforms
+            )
         else:
             annotation.pop("segmentation", None)
 

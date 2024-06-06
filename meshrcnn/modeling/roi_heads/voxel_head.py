@@ -1,13 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import fvcore.nn.weight_init as weight_init
 import torch
-from detectron2.layers import Conv2d, ConvTranspose2d, cat, get_norm
+from detectron2.layers import cat, Conv2d, ConvTranspose2d, get_norm
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.registry import Registry
-from torch import nn
-from torch.nn import functional as F
 
 from meshrcnn.structures.voxel import batch_crop_voxels_within_box
+from torch import nn
+from torch.nn import functional as F
 
 ROI_VOXEL_HEAD_REGISTRY = Registry("ROI_VOXEL_HEAD")
 
@@ -168,7 +168,11 @@ class VoxelRCNNConvUpsampleHead(nn.Module):
         )
 
         self.predictor = Conv2d(
-            conv_dims, self.num_classes * self.num_depth, kernel_size=1, stride=1, padding=0
+            conv_dims,
+            self.num_classes * self.num_depth,
+            kernel_size=1,
+            stride=1,
+            padding=0,
         )
 
         for layer in self.conv_norm_relus + [self.deconv]:
