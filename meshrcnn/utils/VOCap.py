@@ -28,7 +28,6 @@ def compute_ap(scores, labels, npos, device=None):
 
 
 def xVOCap(rec, prec, device):
-
     z = rec.new_zeros((1))
     o = rec.new_ones((1))
     mrec = torch.cat((z, rec, o))

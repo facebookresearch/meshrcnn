@@ -44,7 +44,6 @@ def copy_data(args):
 
 
 def main_worker_eval(worker_id, args):
-
     device = torch.device("cuda:%d" % worker_id)
     cfg = setup(args)
 

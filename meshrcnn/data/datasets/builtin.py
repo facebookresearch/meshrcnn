@@ -10,6 +10,7 @@ We hard-code metadata for common datasets. This will enable:
 We hard-code some paths to the dataset that's assumed to
 exist in "./datasets/".
 """
+
 import os
 
 from detectron2.data import DatasetCatalog, MetadataCatalog

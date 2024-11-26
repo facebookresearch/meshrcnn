@@ -21,7 +21,6 @@ class MeshLoss(nn.Module):
         gt_num_samples=5000,
         pred_num_samples=5000,
     ):
-
         super(MeshLoss, self).__init__()
         self.chamfer_weight = chamfer_weight
         self.normal_weight = normal_weight

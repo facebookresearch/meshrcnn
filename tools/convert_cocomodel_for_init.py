@@ -4,6 +4,7 @@ r"""
 Convert coco model for init. Remove class specific heads, optimizer and scheduler
 so that this model can be used for pre-training
 """
+
 import argparse
 
 import torch

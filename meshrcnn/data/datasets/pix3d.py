@@ -104,7 +104,6 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
     dataset_dicts = []
 
     for img_dict, anno_dict_list in imgs_anns:
-
         # examples with imgfiles = {img/table/1749.jpg, img/table/0045.png}
         # have a mismatch between images and masks. Thus, ignore
         if img_dict["file_name"] in ["img/table/1749.jpg", "img/table/0045.png"]:

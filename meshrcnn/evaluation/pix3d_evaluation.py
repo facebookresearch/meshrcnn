@@ -221,7 +221,6 @@ def evaluate_for_pix3d(
         npos[gt_label] += 1.0
 
     for prediction in predictions:
-
         original_id = prediction["image_id"]
         image_width = dataset.loadImgs([original_id])[0]["width"]
         image_height = dataset.loadImgs([original_id])[0]["height"]

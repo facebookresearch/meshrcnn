@@ -380,7 +380,6 @@ def visualize_predictions(
     alpha=0.6,
     dpi=200,
 ):
-
     # create vis_dir
     output_dir = os.path.join(output_dir, "results")
     os.makedirs(output_dir, exist_ok=True)

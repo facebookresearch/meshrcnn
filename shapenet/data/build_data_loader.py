@@ -26,7 +26,6 @@ def build_data_loader(
     shuffle=True,
     num_samples=None,
 ):
-
     batch_size = cfg.SOLVER.BATCH_SIZE
     return_mesh, sample_online, return_id_str = False, False, False
     if split_name in ["train_eval", "val"]:

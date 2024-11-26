@@ -119,7 +119,6 @@ class VisualizationDemo:
     def visualize_prediction(
         self, det_id, image, box, label, score, mask, mesh, alpha=0.6, dpi=200
     ):
-
         mask_color = np.array(self.colors[label], dtype=np.float32)
         cat_name = self.cat_names[label]
         thickness = max([int(np.ceil(0.001 * image.shape[0])), 1])

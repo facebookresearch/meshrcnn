@@ -30,7 +30,6 @@ class MeshVoxDataset(Dataset):
         in_memory=False,
         return_id_str=False,
     ):
-
         super(MeshVoxDataset, self).__init__()
         if not return_mesh and sample_online:
             raise ValueError("Cannot sample online without returning mesh")

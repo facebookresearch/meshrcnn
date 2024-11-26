@@ -8,7 +8,6 @@ from fvcore.common.config import CfgNode as CN
 # Config definition
 # -----------------------------------------------------------------------------
 def get_shapenet_cfg():
-
     cfg = CN()
     cfg.MODEL = CN()
     cfg.MODEL.BACKBONE = "resnet50"

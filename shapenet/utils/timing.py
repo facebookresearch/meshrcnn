@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
-""" Utilities for timing GPU operations in PyTorch. """
+"""Utilities for timing GPU operations in PyTorch."""
+
 import logging
 import time
 from collections import defaultdict

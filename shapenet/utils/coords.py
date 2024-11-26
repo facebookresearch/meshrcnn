@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
-""" Utilities for working with different 3D coordinate systems """
+"""Utilities for working with different 3D coordinate systems"""
 
 import copy
 import math
