@@ -9,10 +9,8 @@ import torch
 from detectron2.data import detection_utils as utils, MetadataCatalog, transforms as T
 from detectron2.structures import Boxes, BoxMode, Instances
 from detectron2.utils.file_io import PathManager
-
 from meshrcnn.structures import MeshInstances, VoxelInstances
 from meshrcnn.utils import shape as shape_utils
-
 from PIL import Image
 from pytorch3d.io import load_obj
 

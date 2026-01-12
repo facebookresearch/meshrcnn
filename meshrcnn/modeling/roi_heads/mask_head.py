@@ -2,7 +2,6 @@
 import torch
 from detectron2.layers import cat
 from detectron2.utils.events import get_event_storage
-
 from meshrcnn.structures.mask import batch_crop_masks_within_box
 from torch.nn import functional as F
 
@@ -28,9 +27,9 @@ def mask_rcnn_loss(pred_mask_logits, instances):
     cls_agnostic_mask = pred_mask_logits.size(1) == 1
     total_num_masks = pred_mask_logits.size(0)
     mask_side_len = pred_mask_logits.size(2)
-    assert pred_mask_logits.size(2) == pred_mask_logits.size(
-        3
-    ), "Mask prediction must be square!"
+    assert pred_mask_logits.size(2) == pred_mask_logits.size(3), (
+        "Mask prediction must be square!"
+    )
 
     gt_classes = []
     gt_masks = []

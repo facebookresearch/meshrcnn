@@ -10,7 +10,6 @@ from detectron2.structures import Boxes, BoxMode
 from detectron2.utils.colormap import colormap
 from pytorch3d.io import save_obj
 from pytorch3d.ops import sample_points_from_meshes
-
 from tabulate import tabulate
 from termcolor import colored
 

@@ -4,11 +4,9 @@ from collections import defaultdict
 
 import detectron2.utils.comm as comm
 import numpy as np
-
 import shapenet.utils.vis as vis_utils
 import torch
 from detectron2.evaluation import inference_context
-
 from meshrcnn.utils.metrics import compare_meshes
 from shapenet.data.utils import image_to_numpy, imagenet_deprocess
 

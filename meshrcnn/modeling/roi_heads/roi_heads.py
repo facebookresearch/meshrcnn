@@ -9,7 +9,6 @@ from detectron2.modeling.roi_heads.roi_heads import (
     select_foreground_proposals,
     StandardROIHeads,
 )
-
 from meshrcnn.modeling.roi_heads.mask_head import mask_rcnn_loss
 from meshrcnn.modeling.roi_heads.mesh_head import (
     build_mesh_head,

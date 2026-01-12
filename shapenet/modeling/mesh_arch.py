@@ -5,7 +5,6 @@ from detectron2.utils.registry import Registry
 from pytorch3d.ops import cubify
 from pytorch3d.structures import Meshes
 from pytorch3d.utils import ico_sphere
-
 from shapenet.modeling.backbone import build_backbone
 from shapenet.modeling.heads import MeshRefinementHead, VoxelHead
 from shapenet.utils.coords import get_blender_intrinsic_matrix, voxel_to_world

@@ -13,7 +13,6 @@ import torch.multiprocessing as mp
 from detectron2.utils.collect_env import collect_env_info
 from detectron2.utils.logger import setup_logger
 from fvcore.common.file_io import PathManager
-
 from shapenet.config import get_shapenet_cfg
 from shapenet.data import build_data_loader, register_shapenet
 from shapenet.evaluation import evaluate_split, evaluate_test, evaluate_test_p2m

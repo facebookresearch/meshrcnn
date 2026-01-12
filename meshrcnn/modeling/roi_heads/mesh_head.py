@@ -5,7 +5,6 @@ import fvcore.nn.weight_init as weight_init
 import torch
 from detectron2.layers import cat, ShapeSpec
 from detectron2.utils.registry import Registry
-
 from meshrcnn.structures.mesh import batch_crop_meshes_within_box, MeshInstances
 from pytorch3d.loss import chamfer_distance, mesh_edge_loss
 from pytorch3d.ops import (

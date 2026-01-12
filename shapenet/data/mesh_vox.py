@@ -4,7 +4,6 @@ import logging
 import os
 
 import torch
-
 import torchvision.transforms as T
 from fvcore.common.file_io import PathManager
 from PIL import Image

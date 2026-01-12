@@ -3,7 +3,6 @@ import itertools
 import os
 
 from pytorch3d.io import save_obj
-
 from tabulate import tabulate
 from termcolor import colored
 

@@ -4,7 +4,6 @@ import torch
 from detectron2.layers import cat, Conv2d, ConvTranspose2d, get_norm
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.registry import Registry
-
 from meshrcnn.structures.voxel import batch_crop_voxels_within_box
 from torch import nn
 from torch.nn import functional as F
@@ -33,12 +32,12 @@ def voxel_rcnn_loss(pred_voxel_logits, instances, loss_weight=1.0):
     cls_agnostic_voxel = pred_voxel_logits.size(1) == 1
     total_num_voxels = pred_voxel_logits.size(0)
     voxel_side_len = pred_voxel_logits.size(2)
-    assert pred_voxel_logits.size(2) == pred_voxel_logits.size(
-        3
-    ), "Voxel prediction must be square!"
-    assert pred_voxel_logits.size(2) == pred_voxel_logits.size(
-        4
-    ), "Voxel prediction must be square!"
+    assert pred_voxel_logits.size(2) == pred_voxel_logits.size(3), (
+        "Voxel prediction must be square!"
+    )
+    assert pred_voxel_logits.size(2) == pred_voxel_logits.size(4), (
+        "Voxel prediction must be square!"
+    )
 
     gt_classes = []
     gt_voxel_logits = []

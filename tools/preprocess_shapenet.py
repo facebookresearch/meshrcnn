@@ -13,7 +13,6 @@ from detectron2.utils.logger import setup_logger
 from pytorch3d.io import load_obj
 from pytorch3d.ops import sample_points_from_meshes
 from pytorch3d.structures import Meshes
-
 from shapenet.utils.binvox_torch import read_binvox_coords
 from shapenet.utils.coords import (
     compute_extrinsic_matrix,

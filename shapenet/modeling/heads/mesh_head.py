@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 from pytorch3d.ops import GraphConv, SubdivideMeshes, vert_align
-
 from shapenet.utils.coords import project_verts
 from torch.nn import functional as F
 

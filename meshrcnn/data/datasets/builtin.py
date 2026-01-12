@@ -14,7 +14,6 @@ exist in "./datasets/".
 import os
 
 from detectron2.data import DatasetCatalog, MetadataCatalog
-
 from meshrcnn.data.datasets import load_pix3d_json
 
 

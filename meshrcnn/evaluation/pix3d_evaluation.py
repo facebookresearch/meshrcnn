@@ -10,7 +10,6 @@ import os
 from collections import OrderedDict
 
 import detectron2.utils.comm as comm
-
 import meshrcnn.utils.VOCap as VOCap
 import numpy as np
 import pycocotools.mask as mask_util

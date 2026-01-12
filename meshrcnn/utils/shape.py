@@ -2,7 +2,6 @@
 import numpy as np
 import torch
 from detectron2.utils.file_io import PathManager
-
 from meshrcnn.utils.projtransform import ProjectiveTransform
 from scipy import io as sio
 
